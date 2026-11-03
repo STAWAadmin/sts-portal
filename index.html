@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Science Talent Search – Entry Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f7f8;--card:#fff;--ink:#111418;--mut:#4f5d6b;--line:#d3dde8;--pri:#1768b3;--lnk:#1768b3;--pk:#fff;--chip:#f47b20;--chipk:#111;--soft:#e7f0f9;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b141c;--card:#132130;--ink:#e6eef5;--mut:#98abbd;--line:#25394c;--pri:#1768b3;--lnk:#6db3f2;--pk:#fff;--chip:#f47b20;--chipk:#111;--soft:#14283c;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b141c;--card:#132130;--ink:#e6eef5;--mut:#98abbd;--line:#25394c;--pri:#1768b3;--lnk:#6db3f2;--pk:#fff;--chip:#f47b20;--chipk:#111;--soft:#14283c;--bad:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:#1768b3;color:#fff;padding:10px 16px}
+header .in{max-width:1000px;margin:auto;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+header img{height:46px;max-width:100%;margin-right:auto;display:block}
+header button{background:none;border:0;color:inherit;font:inherit;padding:6px 2px;cursor:pointer;border-bottom:2px solid transparent;opacity:.8}
+header button.on{border-color:var(--chip);opacity:1}
+main{max-width:1000px;margin:auto;padding:20px 16px 60px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:8px 0 10px;font-weight:800}
+h2{font-size:22px;margin:0 0 12px}h3{margin:0 0 6px;font-size:18px}
+p{margin:0 0 12px}.mut{color:var(--mut)}.small{font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.grid .card{margin:0;display:flex;flex-direction:column;align-items:flex-start}.grid .card p{flex:1}
+label{display:block;font-weight:500;font-size:14px;margin:0 0 12px}
+input,select,textarea{display:block;width:100%;margin-top:4px;padding:9px 10px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px}
+input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0}
+label.ck{font-weight:400;font-size:15px}
+textarea{min-height:84px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--chip);outline-offset:1px}
+.row{display:grid;gap:0 14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+button.b{background:var(--pri);color:var(--pk);border:0;border-radius:6px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}
+button.g{background:none;color:var(--lnk);border:1px solid var(--lnk);border-radius:6px;padding:8px 14px;font:inherit;font-weight:500;cursor:pointer}
+button.s{padding:4px 10px;font-size:13px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 14px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--pri);color:var(--pk);border-color:var(--pri)}
+.eid{display:inline-flex;align-items:stretch;font-weight:800;font-variant-numeric:tabular-nums;border-radius:6px;overflow:hidden;border:1px solid var(--pri);white-space:nowrap}
+.eid i{font-style:normal;padding:2px 7px;background:var(--pri);color:#fff}
+.eid u{text-decoration:none;padding:2px 7px;background:var(--chip);color:var(--chipk)}
+.eid.big{font-size:34px}.eid.big i,.eid.big u{padding:4px 14px}
+.code{display:inline-block;font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.12em;padding:4px 18px;border-radius:6px;background:var(--pri);color:#fff}
+.flash{background:var(--soft);border:1px solid var(--pri);border-radius:8px;padding:14px;margin-bottom:16px}
+.err{color:var(--bad);font-weight:500;min-height:22px;margin:8px 0}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);white-space:nowrap}
+.stu{border-left:3px solid var(--chip);padding-left:12px;margin-bottom:8px}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;background:var(--soft);font-size:12px}
+.chk{display:flex;flex-wrap:wrap;gap:2px 18px;margin-bottom:12px}
+.note{background:var(--soft);border-left:4px solid var(--chip);border-radius:6px;padding:10px 12px;margin:0 0 14px}
+a{color:var(--lnk)}
+</style>
+</head>
+<body>
+<header><div class="in"><img src="data:image/png;base64,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" alt="Science Talent Search"><button data-v="home">Home</button><button data-v="school">Schools</button><button data-v="judge">Judges</button><button data-v="admin">Admin</button></div></header>
+<main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const CATS=["Science Investigation","Engineering","Science Communication Poster","Science Communication Video","Science Communication Photography"];
+const AGES=["Years K-2","Years 3-4","Years 5-6","Years 7-8","Years 9-10","Years 11-12"];
+const DISC=["Biology","Chemistry","Earth and Environmental Science","Physics","Psychology"];
+const YEARS=["Kindergarten","Pre-Primary","Year 1","Year 2","Year 3","Year 4","Year 5","Year 6","Year 7","Year 8","Year 9","Year 10","Year 11","Year 12"];
+let S={schools:[],entries:[],judges:[]},view="home",ses=null,sub="",flash="",at="master",adm=false;
+/* ===== SETUP: paste your two Supabase values here (see README.md, step 4) ===== */
+const SUPABASE_URL="https://syobbwhykrwtiyhqvuzk.supabase.co",SUPABASE_KEY="sb_publishable_Z2AudFNCnPzNv5I3ALk5LA_EOZ1gZ4N";
+/* ================================================================================ */
+const CONFIGURED=!SUPABASE_URL.startsWith("PASTE");
+const sb=CONFIGURED?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+let CRED=null,JV=null;
+const rpc=async(fn,args)=>{const {data,error}=await sb.rpc(fn,args||{});if(error)throw error;return data};
+async function upload(f){const path="u/"+crypto.randomUUID()+"/"+f.name.replace(/[^\w.\-]+/g,"_");
+ const {error}=await sb.storage.from("entries").upload(path,f,{contentType:f.type||undefined});if(error)throw error;
+ return sb.storage.from("entries").getPublicUrl(path).data.publicUrl}
+async function loadAdmin(){const [a,b,c]=await Promise.all([sb.from("schools").select("*").order("created_at"),sb.from("entries").select("*").order("id"),sb.from("judges").select("*").order("created_at")]);
+ S.schools=a.data||[];S.entries=b.data||[];S.judges=c.data||[]}
+async function adminLogin(){const {error}=await sb.auth.signInWithPassword({email:g("ae").value.trim(),password:g("ap").value});
+ if(error){g("aerr").textContent="That email and password don’t match. Check both and try again.";return}
+ let ok=false;try{ok=await rpc("is_admin")}catch(e){}
+ if(!ok){await sb.auth.signOut();g("aerr").textContent="This account isn’t set up as an admin yet. See README.md, step 3.";return}
+ await loadAdmin();adm=true;render()}
+async function adminOut(){await sb.auth.signOut();adm=false;S={schools:[],entries:[],judges:[]};render()}
+async function refresh(){await loadAdmin();render()}
+function copyLink(t){const u=location.href.split("#")[0]+"#e-"+t;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>alert("Judge link copied:\n"+u),()=>prompt("Copy this judge link:",u))}
+function exportXlsx(){const wb=XLSX.utils.book_new(),add=(n,rows,h)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows,h?{header:h}:undefined),n.slice(0,31));
+ const sc=c=>S.schools.find(s=>s.code===c)||{};
+ add("MasterLog",S.entries.map(e=>{const s=sc(e.school),st=e.students||[],x=e.type==="Individual"?st[0]||{}:{};
+  const r={Entry_ID:e.id,Entry_Catagory:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,File_Link:[e.link,e.report].filter(Boolean).join("; "),Entry_Type:e.type,Full_Name:x.n||"",Year_Level:x.y||"",Gender:x.g||"",Aboriginal_and_or_Torres_Strait_Islander:x.a||""};
+  for(let i=1;i<=4;i++){const z=e.type==="Group"?st[i-1]||{}:{};r["Student_"+i+"_Full_Name"]=z.n||"";r["Student_"+i+"_Year_Level"]=z.y||"";r["Student_"+i+"_Gender"]=z.g||"";r["Student_"+i+"_Aboriginal_and_or_Torres_Strait_Islander"]=z.a||""}
+  return Object.assign(r,{School_Name:s.name,School_STS_Coordinator_Teacher_Name:s.coord,School_STS_Coordinator_Teacher_Email_Address:s.email,Publication:e.pub?"Yes":"No",Safety:"Yes"})}));
+ add("SchoolRegistrations",S.schools.map(s=>({EntryId:s.code,SchoolName:s.name,STSCoordinator:s.coord,Email:s.email,ContactNumber:s.phone,StudentsParticipating:s.ns,ExpectedEntries:s.ne,ExpectedJudges:s.nj,Timestamp:s.created_at})));
+ add("JudgeRegistrations",S.judges.map(j=>({Judge_Number:j.code,First_Last_Name:j.name,Email:j.email,Phone:j.phone,School_Institution_Company:j.org,Judged_Last_5_Years:j.prev,Category_Judging:(j.cats||[]).join(", "),Age_Judging:(j.ages||[]).join(", "),Discipline:(j.disc||[]).join(", "),Conflict_Of_Interest:j.coi,Reason_For_Conflict:j.coiNote,Students_In_Competition:j.teach,Student_Age_Division:(j.tAges||[]).join(", "),Student_Category:(j.tCats||[]).join(", ")})));
+ const ab=["K2","34","56","78","910","1112"],cn=["ScienceInvestigation","Engineering","ScienceCommunicationPo","ScienceCommunicationVi","ScienceCommunicationPh"];
+ CATS.forEach((c,ci)=>AGES.forEach((a,ai)=>add(cn[ci]+ab[ai],S.entries.filter(e=>e.cat===c&&e.age===a).map(e=>({Entry_ID:e.id,Entry_Category:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,File_Link:e.link})),["Entry_ID","Entry_Category","Age_Division","Entry_Title","Summary_Of_Entry","File_Link"])));
+ XLSX.writeFile(wb,"STS_Submissions_"+new Date().toISOString().slice(0,10)+".xlsx")}
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const g=id=>document.getElementById(id);
+const opts=(a,v)=>a.map(x=>`<option${x===v?" selected":""}>${esc(x)}</option>`).join("");
+const cur=()=>S.schools.find(s=>s.code===ses);
+const eid=(id,big)=>`<span class="eid${big?" big":""}"><i>${id.slice(0,4)}</i><u>${id.slice(4)}</u></span>`;
+const tok=()=>Math.random().toString(36).slice(2,8);
+const lnk=e=>/^https?:/.test(e.link)?`<a href="${esc(e.link)}" target="_blank" rel="noopener">Open project</a>`:esc(e.file||"-");
+function uniq(lo,hi,list){let c;do{c=String(lo+Math.floor(Math.random()*(hi-lo+1)))}while(list.includes(c));return c}
+function go(v){view=v;sub="";flash="";if(location.hash)history.replaceState(null,"",location.pathname);render()}
+function render(){
+ document.querySelectorAll("header button").forEach(b=>b.classList.toggle("on",b.dataset.v===view));
+ const f=flash;flash="";
+ g("app").innerHTML=(f?`<div class="flash">${f}</div>`:"")+({home,school,judge,admin,jv})[view]();
+ window.scrollTo(0,0)}
+document.querySelector("header").onclick=e=>{if(e.target.dataset.v)go(e.target.dataset.v)};
+
+function home(){return `<h1>Enter, judge and run the Science Talent Search in one place</h1>
+<p class="mut">Schools register and enter students here. Judges register to judge, and STAWA staff manage everything from the admin area.</p>
+<div class="grid"><div class="card"><h3>Schools</h3><p>Log in with your school code and email to enter students. New to the competition? You can register your school from the login page.</p><button class="b" onclick="go('school')">School portal</button></div>
+<div class="card"><h3>Judges</h3><p>Register to judge and receive a 3-digit judge code. Projects open through a private link, one entry at a time.</p><button class="b" onclick="go('judge')">Judge registration</button></div>
+<div class="card"><h3>STAWA admin</h3><p>See every registration and entry in the master list and in each category and age group.</p><button class="b" onclick="go('admin')">Open admin</button></div></div>
+`}
+
+function school(){
+ if(!ses)return sub==="reg"?regForm():loginForm();
+ const sc=cur();if(sub==="new")return entryForm(sc);
+ const es=S.entries.filter(e=>e.school===sc.code);
+ return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(sc.name)}</h2><span class="mut small">School code ${sc.code} · ${esc(sc.coord)}</span></div><button class="b" onclick="sub='new';render()">New entry</button><button class="g" onclick="ses=null;render()">Log out</button></div></div>
+ <h2>Your entries</h2>${es.length?`<div class="scroll"><table><tr><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Students</th><th>Project</th></tr>${es.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.students.map(s=>s.n).join(", "))}</td><td>${lnk(e)}</td></tr>`).join("")}</table></div>`:`<p class="mut">No entries yet. Choose New entry to add your first student or group.</p>`}`}
+
+function regForm(){return `<div class="card"><button class="g s" onclick="sub='';render()">Back to log in</button><h2 style="margin-top:14px">Register your school</h2><p class="mut small">You will get a 4-digit school code. In the live version it is also emailed to the coordinator.</p>
+<div class="row">${F("School name","rn","text","Full name, no abbreviations")}${F("STS coordinator","rc","text","First and last name")}${F("Email","re","email")}${F("Contact number","rp","tel")}${F("How many students are participating in STS at your school?","rs","number","This is how many students at your school are taking part in your school’s prejudging. Whole number.")}${F("Expected number of entries to submit to STS this year","rx","number","This is the number of students you are entering into the competition. Whole number.")}</div><div class="note small"><b>Important:</b> schools that submit more than five (5) entries into the competition will be required to provide judges. The number of judges per school will depend on the number of entries submitted. For example:<br>1 to 5 entries: a judge is optional but appreciated<br>6 to 15 entries: one judge<br>16 to 25 entries: two judges, and so on.<br>Being part of the STS judging panel counts towards your PD as volunteers keep the competition going.</div><div class="row">${F("Approximate number of judges to register","rj","number","Whole number.")}</div>
+<div class="err" id="rerr"></div><button class="b" onclick="register()">Register school</button></div>`}
+const F=(l,id,t="text",h="")=>`<label>${l}${h?`<span class="mut small" style="display:block;font-weight:400">${h}</span>`:""}<input id="${id}" type="${t}"${t==="number"?' min="0" step="1"':""}></label>`;
+async function register(){
+ const v=id=>g(id).value.trim(),em=v("re").toLowerCase();
+ if(!v("rn")||v("rc").split(/\s+/).length<2||!em.includes("@")||!v("rp")){g("rerr").textContent="Enter the full school name, the coordinator’s first and last name, a valid email and a contact number.";return}
+ if(![v("rs"),v("rx"),v("rj")].every(x=>/^\d+$/.test(x))){g("rerr").textContent="Students, entries and judges must be whole numbers (use 0 if none).";return}
+ let code;try{code=await rpc("register_school",{p:{name:v("rn"),coord:v("rc"),email:em,phone:v("rp"),ns:v("rs"),ne:v("rx"),nj:v("rj")}})}catch(e){g("rerr").textContent=e.message||"Something went wrong. Try again.";return}
+ sub="";flash=`<b>${esc(v("rn"))} is registered.</b><p style="margin:8px 0">Your school code is</p><span class="code">${code}</span><p class="small" style="margin-top:10px">Log in below with this code and ${esc(em)}.</p>`;render()}
+function loginForm(){return `<div class="card"><h2>School login</h2><div class="row">${F("School code","lc")}${F("Registered email","le","email")}</div><div class="err" id="lerr"></div><button class="b" onclick="login()">Log in</button><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><p class="mut" style="margin-bottom:8px">Haven’t registered yet?</p><button class="g" onclick="sub='reg';render()">Register your school</button></div>`}
+async function login(){const c=g("lc").value.trim(),em=g("le").value.trim().toLowerCase();let r;
+ try{r=await rpc("school_login",{p_code:c,p_email:em})}catch(e){g("lerr").textContent="Something went wrong. Check your connection and try again.";return}
+ if(!r){g("lerr").textContent="That code and email don’t match a registered school. Check both and try again.";return}
+ S.schools=[r.school];S.entries=r.entries||[];ses=c;CRED={c,em};render()}
+
+function nextNum(sc){const n=S.entries.filter(e=>e.school===sc.code).map(e=>+e.id.slice(4));return Math.max(0,...n)+1}
+const SEL=a=>["Select…",...a];
+function entryForm(sc){const n=nextNum(sc),id=sc.code+String(n).padStart(2,"0");
+ return `<div class="card"><button class="g s" onclick="sub='';render()">Back to entries</button><h2 style="margin-top:14px">New entry</h2>
+ <p>This entry’s ID will be ${eid(id)}</p>
+ <div class="row"><label>Entry category<select id="cat">${opts(SEL(CATS))}</select></label><label>Age division<select id="age">${opts(SEL(AGES))}</select></label><label>Entry type<select id="type" onchange="studs()">${opts(["Individual","Group"])}</select></label></div>
+ <div id="studs"></div>
+ <label>Entry title<input id="title"></label>
+ <label>Summary of the entry <span class="mut small">(around 50 words)</span><textarea id="sum" oninput="g('wc').textContent=(this.value.trim()?this.value.trim().split(/\\s+/).length:0)+' words'"></textarea><span class="mut small" id="wc">0 words</span></label>
+ <div class="row"><label>Link to the project (for example YouTube or Vimeo)<input id="link" placeholder="https://"></label><label>Or upload the project file<input id="pf" type="file"></label></div>
+ <label>Report <span class="mut small">(if your entry needs one)</span><input id="rf" type="file"></label>
+ <div class="note small"><b>School details</b> (from your registration)<br>${esc(sc.name)}<br>${esc(sc.coord)} · ${esc(sc.email)}</div>
+ <div class="note small"><b>Safety declaration</b><ul style="margin:6px 0 8px;padding-left:20px"><li>I am authorised to submit this entry on behalf of the school and student(s).</li><li>The school has obtained and retains the required parent/guardian consent for each student to participate in the STAWA Science Talent Search.</li><li>An appropriate safety risk assessment was undertaken before any practical or investigative work commenced, and appropriate safety procedures and supervision were implemented.</li><li>To the best of my knowledge, the submitted work meets the requirements of the STAWA Science Talent Search.</li><li>I understand that entries will be accessed by STAWA staff, authorised volunteers and judges for the purposes of administering and judging the competition.</li></ul><b>By ticking this box, I confirm that I am authorised to make this declaration on behalf of the school.</b></div>
+ <label class="ck"><input type="checkbox" id="safe">I confirm the safety declaration above (required).</label>
+ <div class="note small"><b>Work publication</b><br>Has the school obtained parent/guardian permission for STAWA to use this student’s submitted work, including images or excerpts from their entry, in STAWA communications and educational or promotional materials? This may include the STAWA website, social media, newsletters, publications and materials promoting the Science Talent Search and science education. Selecting No will not affect the student’s entry or judging.</div>
+ <label class="ck"><input type="checkbox" id="pub">Yes, the school has obtained this permission (optional).</label>
+ <div class="err" id="eerr"></div><button class="b" onclick="saveEntry()">Submit entry</button></div>`}
+function studs(){const grp=g("type").value==="Group";
+ g("studs").innerHTML=(grp?`<label style="max-width:240px">Number of students<select id="cnt" onchange="blocks()">${opts(["2","3","4"])}</select></label>`:"")+`<div id="blk"></div>`;blocks()}
+function blocks(){const n=g("type").value==="Group"?+g("cnt").value:1;let h="";
+ for(let i=0;i<n;i++)h+=`<div class="stu"><b class="small">${n>1?"Student "+(i+1):"Student"}</b><div class="row"><label>Full name (for certificate)<input id="sn${i}"></label><label>Year level<select id="sy${i}">${opts(SEL(YEARS))}</select></label><label>Gender<select id="sg${i}">${opts(SEL(["Male","Female","Other","Prefer Not To Say"]))}</select></label><label>Aboriginal and/or Torres Strait Islander<select id="sa${i}">${opts(SEL(["Yes","No","Prefer Not To Say"]))}</select></label></div></div>`;
+ g("blk").innerHTML=h}
+async function saveEntry(){const sc=cur(),v=id=>g(id).value.trim(),type=v("type"),n=type==="Group"?+v("cnt"):1,st=[],er=[],no=x=>!x||x==="Select…";
+ if(no(v("cat"))||no(v("age")))er.push("Choose a category and an age division.");
+ for(let i=0;i<n;i++){const o={n:v("sn"+i),y:v("sy"+i),g:v("sg"+i),a:v("sa"+i)};if(!o.n||no(o.y)||no(o.g)||no(o.a))er.push("Complete every question for student "+(i+1)+".");st.push(o)}
+ if(!v("title"))er.push("Enter an entry title.");if(!v("sum"))er.push("Enter a summary.");
+ const link=v("link"),pf=g("pf").files[0];
+ if(!link&&!pf)er.push("Add a project link or upload the project file.");
+ if([pf,g("rf").files[0]].some(f=>f&&f.size>52428800))er.push("Files must be under 50 MB. For large videos, upload to YouTube or Vimeo and paste the link instead.");
+ if(link&&!/^https?:\/\/\S+$/.test(link))er.push("The project link must start with https:// and contain no spaces.");
+ if(!g("safe").checked)er.push("Tick the safety declaration to submit an entry.");
+ const num=nextNum(sc);if(num>99)er.push("This school has reached 99 entries.");
+ if(er.length){g("eerr").textContent=er.join(" ");return}
+ let e;g("eerr").textContent="Uploading, please wait…";
+ try{const rf=g("rf").files[0],pl=pf?await upload(pf):"",rl=rf?await upload(rf):"";
+ const e0={cat:v("cat"),age:v("age"),type,students:st,title:v("title"),summary:v("sum"),link:pf?pl:link,file:pf?pf.name:"",report:rl,pub:g("pub").checked};
+ const id=await rpc("submit_entry",{p_code:CRED.c,p_email:CRED.em,p:e0});e={...e0,id};
+ S.entries=(await rpc("school_login",{p_code:CRED.c,p_email:CRED.em})).entries}catch(x){g("eerr").textContent="Couldn’t submit: "+(x.message||"check your connection")+". Your entry has not been saved.";return}
+ sub="";
+ flash=`<b>Entry submitted.</b><p style="margin:8px 0">Entry ID</p>${eid(e.id,1)}<p class="small" style="margin-top:10px">${esc(e.title)} is in the master list and in ${esc(e.cat)}, ${esc(e.age)}.</p>`;render()}
+
+const ck=(c,a)=>`<div class="chk">${a.map(x=>`<label class="ck"><input type="checkbox" class="${c}" value="${x}">${x}</label>`).join("")}</div>`;
+function judge(){return `<div class="card"><h2>Judge registration</h2><p class="mut small">You will get a 3-digit judge code. Entries are shared with you as private links, and each link opens only one project.</p>
+<div class="row">${F("First name","jf")}${F("Surname","jl")}${F("Email","je","email")}${F("Phone number","jp","tel")}${F("School, institute or company","jo")}</div>
+<label style="max-width:460px">Have you judged the Science Talent Search competition in the last five (5) years?<select id="jy">${opts(SEL(["Yes","No"]))}</select></label>
+<b class="small">Entry categories you would prefer to judge (select any)</b>${ck("jc",CATS)}
+<b class="small">Age divisions you would prefer to judge (select any)</b>${ck("ja",AGES)}
+<b class="small">If you are selected to judge Years 7-12 Science Investigation or Science Communication Video, which disciplines would you prefer to judge? (select any)</b>${ck("jd",DISC)}
+<div class="note small">Where possible, members of the organising committee, judges and sponsors must not judge any project or take part in any decision relating to a matter where they have a conflict of interest. Sources of conflict can include:<br>(i) A familial or other close personal relationship, for example living in the same household or being the child of a close friend<br>(ii) A teacher/student relationship (including a student at the same school, but a different class)<br>(iii) A mentoring relationship<br>(iv) A personal or business relationship with a sponsor<br>(v) Previous exposure to the entry, for example at a school or regional fair</div>
+<label style="max-width:460px">Do you have any conflicts of interest?<select id="jk" onchange="jcond('k')">${opts(SEL(["Yes","No"]))}</select></label><div id="jk2"></div>
+<label style="max-width:460px">Are any of the students you teach entered in this year’s competition? <span class="mut small">(Sometimes you may be required to judge entries from schools you are associated with.)</span><select id="jt" onchange="jcond('t')">${opts(SEL(["Yes","No"]))}</select></label><div id="jt2"></div>
+<div class="err" id="jerr"></div><button class="b" onclick="regJudge()">Register as a judge</button></div>`}
+function jcond(w){if(w==="k")g("jk2").innerHTML=g("jk").value==="Yes"?`<label>List any individual entrants from other schools with whom you are associated <span class="mut small">(for example as a tutor, mentor, relative or family friend)</span><textarea id="jr"></textarea></label>`:"";
+ else g("jt2").innerHTML=g("jt").value==="Yes"?`<b class="small">Age divisions your students have entered (select any)</b>${ck("jsa",AGES)}<b class="small">Categories your students have entered (select any)</b>${ck("jsc",CATS)}`:""}
+async function regJudge(){const v=id=>g(id).value.trim(),pick=c=>[...document.querySelectorAll("."+c+":checked")].map(x=>x.value),er=[];
+ if(!v("jf")||!v("jl"))er.push("Enter your first name and surname.");
+ if(!v("je").includes("@"))er.push("Enter a valid email.");
+ if(!v("jp")||!v("jo"))er.push("Enter your phone number and your school, institute or company.");
+ if(["jy","jk","jt"].some(i=>v(i)==="Select…"))er.push("Answer each Yes/No question.");
+ if(!pick("jc").length||!pick("ja").length)er.push("Choose at least one category and one age division.");
+ if(er.length){g("jerr").textContent=er.join(" ");return}
+ let code;try{code=await rpc("register_judge",{p:{name:v("jf")+" "+v("jl"),email:v("je"),phone:v("jp"),org:v("jo"),prev:v("jy"),cats:pick("jc"),ages:pick("ja"),disc:pick("jd"),coi:v("jk"),coiNote:g("jr")?v("jr"):"",teach:v("jt"),tAges:pick("jsa"),tCats:pick("jsc")}})}catch(e){g("jerr").textContent=e.message||"Something went wrong. Try again.";return}
+ flash=`<b>Thanks ${esc(v("jf"))}, you’re registered.</b><p style="margin:8px 0">Your judge code is</p><span class="code">${code}</span>`;render()}
+
+function jv(){
+ if(!JV||JV.token!==sub){const t=sub;JV={token:t,loading:1};rpc("judge_entry",{p_token:t}).then(r=>{JV=r?{...r,token:t}:{token:t,none:1}}).catch(()=>{JV={token:t,none:1}}).then(()=>{if(view==="jv"&&sub===t)render()})}
+ const e=JV;if(e.loading)return `<div class="card"><p>Loading…</p></div>`;
+ if(e.none)return `<div class="card"><h2>Link not found</h2><p>This judging link is not valid. Ask STAWA for a new one.</p></div>`;
+ return `<div class="card"><span class="pill">Judge view · you can only see this entry</span><p style="margin-top:14px">${eid(e.id,1)}</p><h2>${esc(e.title)}</h2><p class="mut">${esc(e.cat)} · ${esc(e.age)}</p><p>${esc(e.summary)}</p>
+ <p><b>Project:</b> ${lnk(e)}</p>${e.report?`<p><b>Report:</b> <a href="${esc(e.report)}" target="_blank" rel="noopener">Open report</a></p>`:""}<p class="mut small">Student and school names are hidden from judges.</p></div>`}
+
+function admin(){
+ if(!adm)return `<div class="card" style="max-width:480px"><h2>Admin login</h2>${F("Email","ae","email")}${F("Password","ap","password")}<div class="err" id="aerr"></div><button class="b" onclick="adminLogin()">Log in</button></div>`;
+ const tabs=[["master","Master list"],["cat","By category"],["schools","Schools"],["judges","Judges"]];
+ return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><h2 style="margin:0;margin-right:auto">Admin</h2><button class="g s" onclick="refresh()">Refresh</button><button class="b s" onclick="exportXlsx()">Download Excel</button><button class="g s" onclick="adminOut()">Log out</button></div><div class="tabs">${tabs.map(t=>`<button class="${at===t[0]?"on":""}" onclick="at='${t[0]}';render()">${t[1]}${t[0]==="master"?" ("+S.entries.length+")":""}</button>`).join("")}</div>`+({master:aMaster,cat:aCat,schools:aSchools,judges:aJudges})[at]()}
+const tbl=(h,r)=>`<div class="scroll"><table><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr>${r.join("")||`<tr><td colspan="${h.length}" class="mut">Nothing here yet.</td></tr>`}</table></div>`;
+function aMaster(){return tbl(["Entry ID","Category","Age division","Title","Type","Students","School","Coordinator","Project","Publication","Judge link"],S.entries.map(e=>{const s=S.schools.find(x=>x.code===e.school)||{};
+ return `<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${e.type}</td><td>${esc(e.students.map(x=>x.n+" ("+x.y+")").join(", "))}</td><td>${esc(s.name)}</td><td>${esc(s.coord)}<br><span class="mut">${esc(s.email)}</span></td><td>${lnk(e)}</td><td>${e.pub?"Yes":"No"}</td><td><button class="g s" onclick="sub='${e.token}';view='jv';render()">Preview</button> <button class="g s" onclick="copyLink('${e.token}')">Copy link</button></td></tr>`}))}
+let fc=CATS[0],fa=AGES[0];
+function aCat(){const r=S.entries.filter(e=>e.cat===fc&&e.age===fa);
+ return `<div class="row" style="max-width:560px"><label>Category<select onchange="fc=this.value;render()">${opts(CATS,fc)}</select></label><label>Age division<select onchange="fa=this.value;render()">${opts(AGES,fa)}</select></label></div>
+ <p class="mut small">${r.length} ${r.length===1?"entry":"entries"} in this sheet. Student and school details are left out, matching your category sheets.</p>`+tbl(["Entry ID","Title","Summary","Project"],r.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.title)}</td><td>${esc(e.summary)}</td><td>${lnk(e)}</td></tr>`))}
+function aSchools(){return tbl(["Code","School","Coordinator","Email","Phone","Students","Expected entries","Expected judges","Entries so far"],S.schools.map(s=>`<tr><td>${s.code}</td><td>${esc(s.name)}</td><td>${esc(s.coord)}</td><td>${esc(s.email)}</td><td>${esc(s.phone)}</td><td>${esc(s.ns)}</td><td>${esc(s.ne)}</td><td>${esc(s.nj)}</td><td>${S.entries.filter(e=>e.school===s.code).length}</td></tr>`))}
+function aJudges(){return tbl(["Code","Name","Email","Phone","Organisation","Judged in last 5 years","Categories","Age divisions","Disciplines","Conflict of interest","Students entered"],S.judges.map(j=>`<tr><td>${j.code}</td><td>${esc(j.name)}</td><td>${esc(j.email)}</td><td>${esc(j.phone)}</td><td>${esc(j.org)}</td><td>${j.prev}</td><td>${esc(j.cats.join(", "))}</td><td>${esc(j.ages.join(", "))}</td><td>${esc((j.disc||[]).join(", "))}</td><td>${j.coi==="Yes"?esc(j.coiNote||"Yes"):"No"}</td><td>${j.teach==="Yes"?esc((j.tCats||[]).join(", ")+" / "+(j.tAges||[]).join(", ")):"No"}</td></tr>`))}
+
+function route(){const m=location.hash.match(/^#e-(\w+)$/);if(m){view="jv";sub=m[1]}render();if(view==="school"&&sub==="new")studs()}
+addEventListener("hashchange",route);
+const _r=render;render=function(){_r();if(view==="school"&&sub==="new"&&g("studs"))studs()};
+async function init(){
+ if(!CONFIGURED){g("app").innerHTML='<div class="card"><h2>Almost there</h2><p>Open <b>index.html</b> in a text editor and paste your Supabase URL and key near the top of the script. README.md, step 4, shows where to find them.</p></div>';return}
+ try{const {data}=await sb.auth.getSession();if(data.session&&await rpc("is_admin")){await loadAdmin();adm=true}}catch(e){}
+ route()}
+init();
+</script>
+</body>
+</html>
