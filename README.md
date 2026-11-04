@@ -11,7 +11,7 @@ You will end up with one website where schools register and enter students, judg
 
 ## Step 2. Create the database
 1. In the left menu click **SQL Editor** and **New query**.
-2. Open `schema.sql` from this folder, copy everything, paste it in, and click **Run**.
+2. Open `schema.sql` from this folder, copy everything, paste it in, and click **Run**. Then do the same with `update-2-judging.sql` then `update-3-cutoff.sql`, then `update-4-lock-edits.sql` (new query, paste, **Run** each).
 3. You should see "Success". This creates the tables, security rules, the file storage bucket and the functions the website uses.
 
 ## Step 3. Create the admin login
@@ -45,3 +45,7 @@ You get a web address straight away. Share that with schools and judges, and opt
 - **Privacy of files:** uploaded files sit at long random web addresses that are not listed anywhere. Only judges you give a link to can open them, but anyone who is given a link could pass it on.
 - **No automatic emails yet:** the school code is shown on screen after registering and is visible in Admin, so you can resend it. Sending emails automatically is a possible next step.
 - **Logo and colours** are inside `index.html` if you ever want to change them.
+
+## Updating an existing install (judging update)
+1. In Supabase, open **SQL Editor**, paste all of `update-2-judging.sql` and click **Run**, then do the same with `update-3-cutoff.sql` and `update-4-lock-edits.sql`. All are safe to run twice, and you only need the ones you haven't run yet.
+2. In GitHub, upload the new `index.html` to your repository (**Add file**, **Upload files**, **Commit changes**). Wait a few minutes, then reload the site.

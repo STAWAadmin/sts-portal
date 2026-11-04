@@ -66,37 +66,37 @@ const CATS=["Science Investigation","Engineering","Science Communication Poster"
 const AGES=["Years K-2","Years 3-4","Years 5-6","Years 7-8","Years 9-10","Years 11-12"];
 const DISC=["Biology","Chemistry","Earth and Environmental Science","Physics","Psychology"];
 const YEARS=["Kindergarten","Pre-Primary","Year 1","Year 2","Year 3","Year 4","Year 5","Year 6","Year 7","Year 8","Year 9","Year 10","Year 11","Year 12"];
-let S={schools:[],entries:[],judges:[]},view="home",ses=null,sub="",flash="",at="master",adm=false;
+let S={schools:[],entries:[],judges:[],assign:[]},view="home",ses=null,sub="",flash="",at="master",adm=false;
 /* ===== SETUP: paste your two Supabase values here (see README.md, step 4) ===== */
 const SUPABASE_URL="https://syobbwhykrwtiyhqvuzk.supabase.co",SUPABASE_KEY="sb_publishable_Z2AudFNCnPzNv5I3ALk5LA_EOZ1gZ4N";
 /* ================================================================================ */
 const CONFIGURED=!SUPABASE_URL.startsWith("PASTE");
 const sb=CONFIGURED?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-let CRED=null,JV=null;
+let CRED=null,JV=null,EDIT=null,JU=null,JC=null,jses=false,CUT=null,NC={};
 const rpc=async(fn,args)=>{const {data,error}=await sb.rpc(fn,args||{});if(error)throw error;return data};
 async function upload(f){const path="u/"+crypto.randomUUID()+"/"+f.name.replace(/[^\w.\-]+/g,"_");
  const {error}=await sb.storage.from("entries").upload(path,f,{contentType:f.type||undefined});if(error)throw error;
  return sb.storage.from("entries").getPublicUrl(path).data.publicUrl}
-async function loadAdmin(){const [a,b,c]=await Promise.all([sb.from("schools").select("*").order("created_at"),sb.from("entries").select("*").order("id"),sb.from("judges").select("*").order("created_at")]);
- S.schools=a.data||[];S.entries=b.data||[];S.judges=c.data||[]}
+async function loadAdmin(){const [a,b,c,d]=await Promise.all([sb.from("schools").select("*").order("created_at"),sb.from("entries").select("*").order("id"),sb.from("judges").select("*").order("created_at"),sb.from("assignments").select("*")]);
+ S.schools=a.data||[];S.entries=b.data||[];S.judges=c.data||[];S.assign=d.data||[];NC={};try{CUT=await rpc("submission_cutoff")}catch(e){}}
 async function adminLogin(){const {error}=await sb.auth.signInWithPassword({email:g("ae").value.trim(),password:g("ap").value});
  if(error){g("aerr").textContent="That email and password don’t match. Check both and try again.";return}
  let ok=false;try{ok=await rpc("is_admin")}catch(e){}
  if(!ok){await sb.auth.signOut();g("aerr").textContent="This account isn’t set up as an admin yet. See README.md, step 3.";return}
  await loadAdmin();adm=true;render()}
-async function adminOut(){await sb.auth.signOut();adm=false;S={schools:[],entries:[],judges:[]};render()}
+async function adminOut(){await sb.auth.signOut();adm=false;S={schools:[],entries:[],judges:[],assign:[]};render()}
 async function refresh(){await loadAdmin();render()}
 function copyLink(t){const u=location.href.split("#")[0]+"#e-"+t;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>alert("Judge link copied:\n"+u),()=>prompt("Copy this judge link:",u))}
-function exportXlsx(){const wb=XLSX.utils.book_new(),add=(n,rows,h)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows,h?{header:h}:undefined),n.slice(0,31));
+function exportXlsx(){const JA=judgeSlots(),wb=XLSX.utils.book_new(),add=(n,rows,h)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows,h?{header:h}:undefined),n.slice(0,31));
  const sc=c=>S.schools.find(s=>s.code===c)||{};
  add("MasterLog",S.entries.map(e=>{const s=sc(e.school),st=e.students||[],x=e.type==="Individual"?st[0]||{}:{};
-  const r={Entry_ID:e.id,Entry_Catagory:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,File_Link:[e.link,e.report].filter(Boolean).join("; "),Entry_Type:e.type,Full_Name:x.n||"",Year_Level:x.y||"",Gender:x.g||"",Aboriginal_and_or_Torres_Strait_Islander:x.a||""};
+  const r={Judge_1:(JA[e.id]||{})[1]||"",Judge_2:(JA[e.id]||{})[2]||"",Entry_ID:e.id,Entry_Catagory:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,Project_Link:e.link||"",Project_File_Link:e.fileUrl||"",Report_Link:e.report||"",Entry_Type:e.type,Full_Name:x.n||"",Year_Level:x.y||"",Gender:x.g||"",Aboriginal_and_or_Torres_Strait_Islander:x.a||""};
   for(let i=1;i<=4;i++){const z=e.type==="Group"?st[i-1]||{}:{};r["Student_"+i+"_Full_Name"]=z.n||"";r["Student_"+i+"_Year_Level"]=z.y||"";r["Student_"+i+"_Gender"]=z.g||"";r["Student_"+i+"_Aboriginal_and_or_Torres_Strait_Islander"]=z.a||""}
   return Object.assign(r,{School_Name:s.name,School_STS_Coordinator_Teacher_Name:s.coord,School_STS_Coordinator_Teacher_Email_Address:s.email,Publication:e.pub?"Yes":"No",Safety:"Yes"})}));
  add("SchoolRegistrations",S.schools.map(s=>({EntryId:s.code,SchoolName:s.name,STSCoordinator:s.coord,Email:s.email,ContactNumber:s.phone,StudentsParticipating:s.ns,ExpectedEntries:s.ne,ExpectedJudges:s.nj,Timestamp:s.created_at})));
  add("JudgeRegistrations",S.judges.map(j=>({Judge_Number:j.code,First_Last_Name:j.name,Email:j.email,Phone:j.phone,School_Institution_Company:j.org,Judged_Last_5_Years:j.prev,Category_Judging:(j.cats||[]).join(", "),Age_Judging:(j.ages||[]).join(", "),Discipline:(j.disc||[]).join(", "),Conflict_Of_Interest:j.coi,Reason_For_Conflict:j.coiNote,Students_In_Competition:j.teach,Student_Age_Division:(j.tAges||[]).join(", "),Student_Category:(j.tCats||[]).join(", ")})));
  const ab=["K2","34","56","78","910","1112"],cn=["ScienceInvestigation","Engineering","ScienceCommunicationPo","ScienceCommunicationVi","ScienceCommunicationPh"];
- CATS.forEach((c,ci)=>AGES.forEach((a,ai)=>add(cn[ci]+ab[ai],S.entries.filter(e=>e.cat===c&&e.age===a).map(e=>({Entry_ID:e.id,Entry_Category:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,File_Link:e.link})),["Entry_ID","Entry_Category","Age_Division","Entry_Title","Summary_Of_Entry","File_Link"])));
+ CATS.forEach((c,ci)=>AGES.forEach((a,ai)=>add(cn[ci]+ab[ai],S.entries.filter(e=>e.cat===c&&e.age===a).map(e=>({Entry_ID:e.id,Entry_Category:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,Project_Link:e.link||"",Project_File_Link:e.fileUrl||"",Report_Link:e.report||""})),["Entry_ID","Entry_Category","Age_Division","Entry_Title","Summary_Of_Entry","Project_Link","Project_File_Link","Report_Link"])));
  XLSX.writeFile(wb,"STS_Submissions_"+new Date().toISOString().slice(0,10)+".xlsx")}
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const g=id=>document.getElementById(id);
@@ -104,9 +104,10 @@ const opts=(a,v)=>a.map(x=>`<option${x===v?" selected":""}>${esc(x)}</option>`).
 const cur=()=>S.schools.find(s=>s.code===ses);
 const eid=(id,big)=>`<span class="eid${big?" big":""}"><i>${id.slice(0,4)}</i><u>${id.slice(4)}</u></span>`;
 const tok=()=>Math.random().toString(36).slice(2,8);
-const lnk=e=>/^https?:/.test(e.link)?`<a href="${esc(e.link)}" target="_blank" rel="noopener">Open project</a>`:esc(e.file||"-");
+const lnk=e=>{const u=(h,t)=>`<a href="${esc(h)}" target="_blank" rel="noopener">${esc(t)}</a>`,a=[];
+ if(/^https?:/.test(e.link||""))a.push(u(e.link,"Project link"));if(e.fileUrl)a.push(u(e.fileUrl,"File: "+(e.file||"project")));if(e.report)a.push(u(e.report,"Report: "+(e.reportName||"report")));return a.join("<br>")||"-"};
 function uniq(lo,hi,list){let c;do{c=String(lo+Math.floor(Math.random()*(hi-lo+1)))}while(list.includes(c));return c}
-function go(v){view=v;sub="";flash="";if(location.hash)history.replaceState(null,"",location.pathname);render()}
+function go(v){view=v;sub="";flash="";EDIT=null;if(location.hash)history.replaceState(null,"",location.pathname);render();if(v==="admin"&&adm)refresh()}
 function render(){
  document.querySelectorAll("header button").forEach(b=>b.classList.toggle("on",b.dataset.v===view));
  const f=flash;flash="";
@@ -116,8 +117,8 @@ document.querySelector("header").onclick=e=>{if(e.target.dataset.v)go(e.target.d
 
 function home(){return `<h1>Enter, judge and run the Science Talent Search in one place</h1>
 <p class="mut">Schools register and enter students here. Judges register to judge, and STAWA staff manage everything from the admin area.</p>
-<div class="grid"><div class="card"><h3>Schools</h3><p>Log in with your school code and email to enter students. New to the competition? You can register your school from the login page.</p><button class="b" onclick="go('school')">School portal</button></div>
-<div class="card"><h3>Judges</h3><p>Register to judge and receive a 3-digit judge code. Projects open through a private link, one entry at a time.</p><button class="b" onclick="go('judge')">Judge registration</button></div>
+${cutNote()}<div class="grid"><div class="card"><h3>Schools</h3><p>Log in with your school code and email to enter students. New to the competition? You can register your school from the login page.</p><button class="b" onclick="go('school')">School portal</button></div>
+<div class="card"><h3>Judges</h3><p>Log in with your judge number and email to see the projects assigned to you. New judges can register from the login page.</p><button class="b" onclick="go('judge')">Judge portal</button></div>
 <div class="card"><h3>STAWA admin</h3><p>See every registration and entry in the master list and in each category and age group.</p><button class="b" onclick="go('admin')">Open admin</button></div></div>
 `}
 
@@ -125,8 +126,8 @@ function school(){
  if(!ses)return sub==="reg"?regForm():loginForm();
  const sc=cur();if(sub==="new")return entryForm(sc);
  const es=S.entries.filter(e=>e.school===sc.code);
- return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(sc.name)}</h2><span class="mut small">School code ${sc.code} · ${esc(sc.coord)}</span></div><button class="b" onclick="sub='new';render()">New entry</button><button class="g" onclick="ses=null;render()">Log out</button></div></div>
- <h2>Your entries</h2>${es.length?`<div class="scroll"><table><tr><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Students</th><th>Project</th></tr>${es.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.students.map(s=>s.n).join(", "))}</td><td>${lnk(e)}</td></tr>`).join("")}</table></div>`:`<p class="mut">No entries yet. Choose New entry to add your first student or group.</p>`}`}
+ return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(sc.name)}</h2><span class="mut small">School code ${sc.code} · ${esc(sc.coord)}</span></div>${isClosed()?"":`<button class="b" onclick="sub='new';render()">New entry</button>`}<button class="g" onclick="ses=null;EDIT=null;render()">Log out</button></div></div>
+ ${cutNote()}<h2>Your entries</h2>${es.length?`<div class="scroll"><table><tr><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Students</th><th>Project links</th><th></th></tr>${es.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.students.map(s=>s.n).join(", "))}</td><td>${lnk(e)}</td><td>${isClosed()?"":`<button class="g s" onclick="startEdit('${e.id}')">Edit</button>`}</td></tr>`).join("")}</table></div>`:`<p class="mut">No entries yet. Choose New entry to add your first student or group.</p>`}`}
 
 function regForm(){return `<div class="card"><button class="g s" onclick="sub='';render()">Back to log in</button><h2 style="margin-top:14px">Register your school</h2><p class="mut small">You will get a 4-digit school code. In the live version it is also emailed to the coordinator.</p>
 <div class="row">${F("School name","rn","text","Full name, no abbreviations")}${F("STS coordinator","rc","text","First and last name")}${F("Email","re","email")}${F("Contact number","rp","tel")}${F("How many students are participating in STS at your school?","rs","number","This is how many students at your school are taking part in your school’s prejudging. Whole number.")}${F("Expected number of entries to submit to STS this year","rx","number","This is the number of students you are entering into the competition. Whole number.")}</div><div class="note small"><b>Important:</b> schools that submit more than five (5) entries into the competition will be required to provide judges. The number of judges per school will depend on the number of entries submitted. For example:<br>1 to 5 entries: a judge is optional but appreciated<br>6 to 15 entries: one judge<br>16 to 25 entries: two judges, and so on.<br>Being part of the STS judging panel counts towards your PD as volunteers keep the competition going.</div><div class="row">${F("Approximate number of judges to register","rj","number","Whole number.")}</div>
@@ -142,51 +143,33 @@ function loginForm(){return `<div class="card"><h2>School login</h2><div class="
 async function login(){const c=g("lc").value.trim(),em=g("le").value.trim().toLowerCase();let r;
  try{r=await rpc("school_login",{p_code:c,p_email:em})}catch(e){g("lerr").textContent="Something went wrong. Check your connection and try again.";return}
  if(!r){g("lerr").textContent="That code and email don’t match a registered school. Check both and try again.";return}
- S.schools=[r.school];S.entries=r.entries||[];ses=c;CRED={c,em};render()}
+ S.schools=[r.school];S.entries=r.entries||[];ses=c;CRED={c,em};await loadCut();render()}
 
 function nextNum(sc){const n=S.entries.filter(e=>e.school===sc.code).map(e=>+e.id.slice(4));return Math.max(0,...n)+1}
 const SEL=a=>["Select…",...a];
 function entryForm(sc){const n=nextNum(sc),id=sc.code+String(n).padStart(2,"0");
- return `<div class="card"><button class="g s" onclick="sub='';render()">Back to entries</button><h2 style="margin-top:14px">New entry</h2>
- <p>This entry’s ID will be ${eid(id)}</p>
+ return `<div class="card"><button class="g s" onclick="cancelEdit()">Back</button><h2 style="margin-top:14px">${EDIT?"Edit entry":"New entry"}</h2>
+ <p>${EDIT?"Entry ID ":"This entry’s ID will be "}${eid(EDIT?EDIT.id:id)}</p>
  <div class="row"><label>Entry category<select id="cat">${opts(SEL(CATS))}</select></label><label>Age division<select id="age">${opts(SEL(AGES))}</select></label><label>Entry type<select id="type" onchange="studs()">${opts(["Individual","Group"])}</select></label></div>
  <div id="studs"></div>
  <label>Entry title<input id="title"></label>
  <label>Summary of the entry <span class="mut small">(around 50 words)</span><textarea id="sum" oninput="g('wc').textContent=(this.value.trim()?this.value.trim().split(/\\s+/).length:0)+' words'"></textarea><span class="mut small" id="wc">0 words</span></label>
- <div class="row"><label>Link to the project (for example YouTube or Vimeo)<input id="link" placeholder="https://"></label><label>Or upload the project file<input id="pf" type="file"></label></div>
- <label>Report <span class="mut small">(if your entry needs one)</span><input id="rf" type="file"></label>
+ <p class="mut small">You can add a project link, a project file and a report, or all three. A link or a file is required.</p>
+ <div class="row"><label>Project link <span class="mut small">(for example a YouTube or Vimeo video)</span><input id="link" placeholder="https://"></label><label>Project file<input id="pf" type="file"><span class="mut small" id="curf"></span></label></div>
+ <label>Report <span class="mut small">(if your entry needs one)</span><input id="rf" type="file"><span class="mut small" id="curr"></span></label>
  <div class="note small"><b>School details</b> (from your registration)<br>${esc(sc.name)}<br>${esc(sc.coord)} · ${esc(sc.email)}</div>
  <div class="note small"><b>Safety declaration</b><ul style="margin:6px 0 8px;padding-left:20px"><li>I am authorised to submit this entry on behalf of the school and student(s).</li><li>The school has obtained and retains the required parent/guardian consent for each student to participate in the STAWA Science Talent Search.</li><li>An appropriate safety risk assessment was undertaken before any practical or investigative work commenced, and appropriate safety procedures and supervision were implemented.</li><li>To the best of my knowledge, the submitted work meets the requirements of the STAWA Science Talent Search.</li><li>I understand that entries will be accessed by STAWA staff, authorised volunteers and judges for the purposes of administering and judging the competition.</li></ul><b>By ticking this box, I confirm that I am authorised to make this declaration on behalf of the school.</b></div>
  <label class="ck"><input type="checkbox" id="safe">I confirm the safety declaration above (required).</label>
  <div class="note small"><b>Work publication</b><br>Has the school obtained parent/guardian permission for STAWA to use this student’s submitted work, including images or excerpts from their entry, in STAWA communications and educational or promotional materials? This may include the STAWA website, social media, newsletters, publications and materials promoting the Science Talent Search and science education. Selecting No will not affect the student’s entry or judging.</div>
  <label class="ck"><input type="checkbox" id="pub">Yes, the school has obtained this permission (optional).</label>
- <div class="err" id="eerr"></div><button class="b" onclick="saveEntry()">Submit entry</button></div>`}
+ <div class="err" id="eerr"></div><button class="b" onclick="saveEntry()">${EDIT?"Save changes":"Submit entry"}</button></div>`}
 function studs(){const grp=g("type").value==="Group";
  g("studs").innerHTML=(grp?`<label style="max-width:240px">Number of students<select id="cnt" onchange="blocks()">${opts(["2","3","4"])}</select></label>`:"")+`<div id="blk"></div>`;blocks()}
 function blocks(){const n=g("type").value==="Group"?+g("cnt").value:1;let h="";
  for(let i=0;i<n;i++)h+=`<div class="stu"><b class="small">${n>1?"Student "+(i+1):"Student"}</b><div class="row"><label>Full name (for certificate)<input id="sn${i}"></label><label>Year level<select id="sy${i}">${opts(SEL(YEARS))}</select></label><label>Gender<select id="sg${i}">${opts(SEL(["Male","Female","Other","Prefer Not To Say"]))}</select></label><label>Aboriginal and/or Torres Strait Islander<select id="sa${i}">${opts(SEL(["Yes","No","Prefer Not To Say"]))}</select></label></div></div>`;
  g("blk").innerHTML=h}
-async function saveEntry(){const sc=cur(),v=id=>g(id).value.trim(),type=v("type"),n=type==="Group"?+v("cnt"):1,st=[],er=[],no=x=>!x||x==="Select…";
- if(no(v("cat"))||no(v("age")))er.push("Choose a category and an age division.");
- for(let i=0;i<n;i++){const o={n:v("sn"+i),y:v("sy"+i),g:v("sg"+i),a:v("sa"+i)};if(!o.n||no(o.y)||no(o.g)||no(o.a))er.push("Complete every question for student "+(i+1)+".");st.push(o)}
- if(!v("title"))er.push("Enter an entry title.");if(!v("sum"))er.push("Enter a summary.");
- const link=v("link"),pf=g("pf").files[0];
- if(!link&&!pf)er.push("Add a project link or upload the project file.");
- if([pf,g("rf").files[0]].some(f=>f&&f.size>52428800))er.push("Files must be under 50 MB. For large videos, upload to YouTube or Vimeo and paste the link instead.");
- if(link&&!/^https?:\/\/\S+$/.test(link))er.push("The project link must start with https:// and contain no spaces.");
- if(!g("safe").checked)er.push("Tick the safety declaration to submit an entry.");
- const num=nextNum(sc);if(num>99)er.push("This school has reached 99 entries.");
- if(er.length){g("eerr").textContent=er.join(" ");return}
- let e;g("eerr").textContent="Uploading, please wait…";
- try{const rf=g("rf").files[0],pl=pf?await upload(pf):"",rl=rf?await upload(rf):"";
- const e0={cat:v("cat"),age:v("age"),type,students:st,title:v("title"),summary:v("sum"),link:pf?pl:link,file:pf?pf.name:"",report:rl,pub:g("pub").checked};
- const id=await rpc("submit_entry",{p_code:CRED.c,p_email:CRED.em,p:e0});e={...e0,id};
- S.entries=(await rpc("school_login",{p_code:CRED.c,p_email:CRED.em})).entries}catch(x){g("eerr").textContent="Couldn’t submit: "+(x.message||"check your connection")+". Your entry has not been saved.";return}
- sub="";
- flash=`<b>Entry submitted.</b><p style="margin:8px 0">Entry ID</p>${eid(e.id,1)}<p class="small" style="margin-top:10px">${esc(e.title)} is in the master list and in ${esc(e.cat)}, ${esc(e.age)}.</p>`;render()}
-
 const ck=(c,a)=>`<div class="chk">${a.map(x=>`<label class="ck"><input type="checkbox" class="${c}" value="${x}">${x}</label>`).join("")}</div>`;
-function judge(){return `<div class="card"><h2>Judge registration</h2><p class="mut small">You will get a 3-digit judge code. Entries are shared with you as private links, and each link opens only one project.</p>
+function judgeReg(){return `<div class="card"><button class="g s" onclick="sub='';render()">Back to log in</button><h2 style="margin-top:14px">Judge registration</h2><p class="mut small">You will get a 3-digit judge code. Entries are shared with you as private links, and each link opens only one project.</p>
 <div class="row">${F("First name","jf")}${F("Surname","jl")}${F("Email","je","email")}${F("Phone number","jp","tel")}${F("School, institute or company","jo")}</div>
 <label style="max-width:460px">Have you judged the Science Talent Search competition in the last five (5) years?<select id="jy">${opts(SEL(["Yes","No"]))}</select></label>
 <b class="small">Entry categories you would prefer to judge (select any)</b>${ck("jc",CATS)}
@@ -206,36 +189,186 @@ async function regJudge(){const v=id=>g(id).value.trim(),pick=c=>[...document.qu
  if(!pick("jc").length||!pick("ja").length)er.push("Choose at least one category and one age division.");
  if(er.length){g("jerr").textContent=er.join(" ");return}
  let code;try{code=await rpc("register_judge",{p:{name:v("jf")+" "+v("jl"),email:v("je"),phone:v("jp"),org:v("jo"),prev:v("jy"),cats:pick("jc"),ages:pick("ja"),disc:pick("jd"),coi:v("jk"),coiNote:g("jr")?v("jr"):"",teach:v("jt"),tAges:pick("jsa"),tCats:pick("jsc")}})}catch(e){g("jerr").textContent=e.message||"Something went wrong. Try again.";return}
- flash=`<b>Thanks ${esc(v("jf"))}, you’re registered.</b><p style="margin:8px 0">Your judge code is</p><span class="code">${code}</span>`;render()}
+ sub="";flash=`<b>Thanks ${esc(v("jf"))}, you’re registered.</b><p style="margin:8px 0">Your judge number is</p><span class="code">${code}</span><p class="small" style="margin-top:10px">Log in below with this number and your email.</p>`;render()}
 
 function jv(){
  if(!JV||JV.token!==sub){const t=sub;JV={token:t,loading:1};rpc("judge_entry",{p_token:t}).then(r=>{JV=r?{...r,token:t}:{token:t,none:1}}).catch(()=>{JV={token:t,none:1}}).then(()=>{if(view==="jv"&&sub===t)render()})}
  const e=JV;if(e.loading)return `<div class="card"><p>Loading…</p></div>`;
  if(e.none)return `<div class="card"><h2>Link not found</h2><p>This judging link is not valid. Ask STAWA for a new one.</p></div>`;
  return `<div class="card"><span class="pill">Judge view · you can only see this entry</span><p style="margin-top:14px">${eid(e.id,1)}</p><h2>${esc(e.title)}</h2><p class="mut">${esc(e.cat)} · ${esc(e.age)}</p><p>${esc(e.summary)}</p>
- <p><b>Project:</b> ${lnk(e)}</p>${e.report?`<p><b>Report:</b> <a href="${esc(e.report)}" target="_blank" rel="noopener">Open report</a></p>`:""}<p class="mut small">Student and school names are hidden from judges.</p></div>`}
+ <p><b>Project:</b><br>${lnk(e)}</p><p class="mut small">Student and school names are hidden from judges.</p></div>`}
 
 function admin(){
  if(!adm)return `<div class="card" style="max-width:480px"><h2>Admin login</h2>${F("Email","ae","email")}${F("Password","ap","password")}<div class="err" id="aerr"></div><button class="b" onclick="adminLogin()">Log in</button></div>`;
- const tabs=[["master","Master list"],["cat","By category"],["schools","Schools"],["judges","Judges"]];
- return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><h2 style="margin:0;margin-right:auto">Admin</h2><button class="g s" onclick="refresh()">Refresh</button><button class="b s" onclick="exportXlsx()">Download Excel</button><button class="g s" onclick="adminOut()">Log out</button></div><div class="tabs">${tabs.map(t=>`<button class="${at===t[0]?"on":""}" onclick="at='${t[0]}';render()">${t[1]}${t[0]==="master"?" ("+S.entries.length+")":""}</button>`).join("")}</div>`+({master:aMaster,cat:aCat,schools:aSchools,judges:aJudges})[at]()}
+ if(at==="edit"&&EDIT)return entryForm(S.schools.find(s=>s.code===EDIT.school)||{code:"",name:"",coord:"",email:""});
+ const tabs=[["master","Master list"],["cat","By category"],["schools","Schools"],["judges","Judges"],["assign","Judge assignments"]];
+ return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><h2 style="margin:0;margin-right:auto">Admin</h2><button class="g s" onclick="refresh()">Refresh</button><button class="b s" onclick="exportXlsx()">Download Excel</button><button class="g s" onclick="adminOut()">Log out</button></div>${cutCard()}<div class="tabs">${tabs.map(t=>`<button class="${at===t[0]?"on":""}" onclick="adminTab('${t[0]}')">${t[1]}${t[0]==="master"?" ("+S.entries.length+")":""}</button>`).join("")}</div>`+({master:aMaster,cat:aCat,schools:aSchools,judges:aJudges,assign:aAssign})[at]()}
 const tbl=(h,r)=>`<div class="scroll"><table><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr>${r.join("")||`<tr><td colspan="${h.length}" class="mut">Nothing here yet.</td></tr>`}</table></div>`;
-function aMaster(){return tbl(["Entry ID","Category","Age division","Title","Type","Students","School","Coordinator","Project","Publication","Judge link"],S.entries.map(e=>{const s=S.schools.find(x=>x.code===e.school)||{};
- return `<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${e.type}</td><td>${esc(e.students.map(x=>x.n+" ("+x.y+")").join(", "))}</td><td>${esc(s.name)}</td><td>${esc(s.coord)}<br><span class="mut">${esc(s.email)}</span></td><td>${lnk(e)}</td><td>${e.pub?"Yes":"No"}</td><td><button class="g s" onclick="sub='${e.token}';view='jv';render()">Preview</button> <button class="g s" onclick="copyLink('${e.token}')">Copy link</button></td></tr>`}))}
 let fc=CATS[0],fa=AGES[0];
 function aCat(){const r=S.entries.filter(e=>e.cat===fc&&e.age===fa);
  return `<div class="row" style="max-width:560px"><label>Category<select onchange="fc=this.value;render()">${opts(CATS,fc)}</select></label><label>Age division<select onchange="fa=this.value;render()">${opts(AGES,fa)}</select></label></div>
- <p class="mut small">${r.length} ${r.length===1?"entry":"entries"} in this sheet. Student and school details are left out, matching your category sheets.</p>`+tbl(["Entry ID","Title","Summary","Project"],r.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.title)}</td><td>${esc(e.summary)}</td><td>${lnk(e)}</td></tr>`))}
+ <p class="mut small">${r.length} ${r.length===1?"entry":"entries"} in this sheet. Student and school details are left out, matching your category sheets.</p>`+tbl(["Entry ID","Title","Summary","Project link","Project file","Report"],r.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.title)}</td><td>${esc(e.summary)}</td><td>${links3(e)[0]}</td><td>${links3(e)[1]}</td><td>${links3(e)[2]}</td></tr>`))}
 function aSchools(){return tbl(["Code","School","Coordinator","Email","Phone","Students","Expected entries","Expected judges","Entries so far"],S.schools.map(s=>`<tr><td>${s.code}</td><td>${esc(s.name)}</td><td>${esc(s.coord)}</td><td>${esc(s.email)}</td><td>${esc(s.phone)}</td><td>${esc(s.ns)}</td><td>${esc(s.ne)}</td><td>${esc(s.nj)}</td><td>${S.entries.filter(e=>e.school===s.code).length}</td></tr>`))}
 function aJudges(){return tbl(["Code","Name","Email","Phone","Organisation","Judged in last 5 years","Categories","Age divisions","Disciplines","Conflict of interest","Students entered"],S.judges.map(j=>`<tr><td>${j.code}</td><td>${esc(j.name)}</td><td>${esc(j.email)}</td><td>${esc(j.phone)}</td><td>${esc(j.org)}</td><td>${j.prev}</td><td>${esc(j.cats.join(", "))}</td><td>${esc(j.ages.join(", "))}</td><td>${esc((j.disc||[]).join(", "))}</td><td>${j.coi==="Yes"?esc(j.coiNote||"Yes"):"No"}</td><td>${j.teach==="Yes"?esc((j.tCats||[]).join(", ")+" / "+(j.tAges||[]).join(", ")):"No"}</td></tr>`))}
 
 function route(){const m=location.hash.match(/^#e-(\w+)$/);if(m){view="jv";sub=m[1]}render();if(view==="school"&&sub==="new")studs()}
 addEventListener("hashchange",route);
-const _r=render;render=function(){_r();if(view==="school"&&sub==="new"&&g("studs"))studs()};
+const _r=render;render=function(){_r();if(g("studs")){studs();if(EDIT)fill(EDIT)}};
+/* ===== links, editing, judges, assignments ===== */
+const allLinks=e=>[e.link,e.fileUrl,e.report].filter(Boolean).join("; ");
+function startEdit(id){if(isClosed()){alert("Entries have closed, so entries can no longer be edited. Please contact STAWA if something needs to change.");return}EDIT=S.entries.find(e=>e.id===id);sub="new";render()}
+function adminEdit(id){EDIT=S.entries.find(e=>e.id===id);at="edit";render()}
+function cancelEdit(){EDIT=null;sub="";if(view==="admin")at="master";render()}
+function fill(e){const s=(id,v)=>{const x=g(id);if(x)x.value=v==null?"":v};
+ s("cat",e.cat);s("age",e.age);s("type",e.type);studs();if(e.type==="Group"){s("cnt",String((e.students||[]).length));blocks()}
+ (e.students||[]).forEach((x,i)=>{s("sn"+i,x.n);s("sy"+i,x.y);s("sg"+i,x.g);s("sa"+i,x.a)});
+ s("title",e.title);s("sum",e.summary);s("link",e.link);g("safe").checked=true;g("pub").checked=!!e.pub;
+ g("wc").textContent=(e.summary.trim()?e.summary.trim().split(/\s+/).length:0)+" words";
+ g("curf").textContent=e.fileUrl?"Current file: "+(e.file||"uploaded")+". Choose a new file to replace it.":"";
+ g("curr").textContent=e.report?"Current report: "+(e.reportName||"uploaded")+". Choose a new file to replace it.":""}
+async function saveEntry(){const v=id=>g(id).value.trim(),type=v("type"),n=type==="Group"?+v("cnt"):1,st=[],er=[],no=x=>!x||x==="Select…";
+ const adm1=EDIT&&view==="admin",old=EDIT||{};
+ if(EDIT&&!adm1&&isClosed()){g("eerr").textContent="Entries have closed, so this entry can no longer be edited.";return}
+ if(no(v("cat"))||no(v("age")))er.push("Choose a category and an age division.");
+ for(let i=0;i<n;i++){const o={n:v("sn"+i),y:v("sy"+i),g:v("sg"+i),a:v("sa"+i)};if(!o.n||no(o.y)||no(o.g)||no(o.a))er.push("Complete every question for student "+(i+1)+".");st.push(o)}
+ if(!v("title"))er.push("Enter an entry title.");if(!v("sum"))er.push("Enter a summary.");
+ const link=v("link"),pf=g("pf").files[0],rf=g("rf").files[0];
+ if(!link&&!pf&&!old.fileUrl)er.push("Add a project link or upload the project file.");
+ if(link&&!/^https?:\/\/\S+$/.test(link))er.push("The project link must start with https:// and contain no spaces.");
+ if([pf,rf].some(f=>f&&f.size>52428800))er.push("Files must be under 50 MB. For large videos, upload to YouTube or Vimeo and paste the link instead.");
+ if(!g("safe").checked)er.push("Tick the safety declaration to submit an entry.");
+ if(!EDIT&&nextNum(cur())>99)er.push("This school has reached 99 entries.");
+ if(er.length){g("eerr").textContent=er.join(" ");return}
+ g("eerr").textContent="Saving, please wait…";
+ try{const fu=pf?await upload(pf):old.fileUrl||"",ru=rf?await upload(rf):old.report||"";
+  const row={cat:v("cat"),age:v("age"),type,students:st,title:v("title"),summary:v("sum"),link,fileUrl:fu,file:pf?pf.name:old.file||"",report:ru,reportName:rf?rf.name:old.reportName||"",pub:g("pub").checked};
+  if(EDIT){if(adm1){const {error}=await sb.from("entries").update(row).eq("id",EDIT.id);if(error)throw error;await loadAdmin()}
+   else{await rpc("update_entry",{p_code:CRED.c,p_email:CRED.em,p_id:EDIT.id,p:row});S.entries=(await rpc("school_login",{p_code:CRED.c,p_email:CRED.em})).entries}
+   flash=`<b>Changes saved</b> for ${eid(EDIT.id)}.`;EDIT=null;sub="";if(adm1)at="master";render();return}
+  const id=await rpc("submit_entry",{p_code:CRED.c,p_email:CRED.em,p:row});
+  S.entries=(await rpc("school_login",{p_code:CRED.c,p_email:CRED.em})).entries;sub="";
+  flash=`<b>Entry submitted.</b><p style="margin:8px 0">Entry ID</p>${eid(id,1)}<p class="small" style="margin-top:10px">${esc(row.title)} is in the master list and in ${esc(row.cat)}, ${esc(row.age)}. You can edit it any time from your entries list.</p>`;render()
+ }catch(x){g("eerr").textContent="Couldn’t save: "+(x.message||"check your connection")+". Your changes have not been saved."}}
+
+function judge(){return jses?judgePortal():sub==="reg"?judgeReg():judgeLogin()}
+function judgeLogin(){return `<div class="card"><h2>Judge login</h2><div class="row">${F("Judge number","jnum")}${F("Registered email","jmail","email")}</div><div class="err" id="jlerr"></div><button class="b" onclick="judgeIn()">Log in</button><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><p class="mut" style="margin-bottom:8px">Haven’t registered yet?</p><button class="g" onclick="sub='reg';render()">Register as a judge</button></div>`}
+async function judgeIn(){const c=g("jnum").value.trim(),em=g("jmail").value.trim().toLowerCase();let r;
+ try{r=await rpc("judge_login",{p_code:c,p_email:em})}catch(e){g("jlerr").textContent="Something went wrong. Check your connection and try again.";return}
+ if(!r){g("jlerr").textContent="That judge number and email don’t match a registered judge. Check both and try again.";return}
+ JU=r;JC={c,em};jses=true;render()}
+async function judgeRefresh(){JU=await rpc("judge_login",{p_code:JC.c,p_email:JC.em});render()}
+function judgePortal(){const es=JU.entries||[];
+ return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(JU.judge.name)}</h2><span class="mut small">Judge number ${JU.judge.code}</span></div><button class="g s" onclick="judgeRefresh()">Refresh</button><button class="g" onclick="jses=false;JU=null;render()">Log out</button></div></div>
+ <h2>Your projects to judge (${es.length})</h2>`+(es.length?`<div class="scroll"><table><tr><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Summary</th><th>Project link</th><th>Project file</th><th>Report</th></tr>${es.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.summary)}</td><td>${links3(e)[0]}</td><td>${links3(e)[1]}</td><td>${links3(e)[2]}</td></tr>`).join("")}</table></div><p class="mut small">Student and school names are hidden from judges. If you spot a conflict of interest with any project, contact STAWA so it can be moved.</p>`:`<p class="mut">No projects have been assigned to you yet. They will appear here once STAWA assigns judging.</p>`)}
+
+/* ----- assigning projects to judges ----- */
+const STOP=new Set("primary school ps college of the and senior high shs".split(" "));
+const toks=s=>String(s||"").toLowerCase().replace(/[^a-z0-9 ]+/g," ").split(/\s+/).filter(w=>w&&!STOP.has(w));
+const sameOrg=(a,b)=>{const x=toks(a),y=toks(b);if(!x.length||!y.length)return false;const A=new Set(x),B=new Set(y);return x.every(w=>B.has(w))||y.every(w=>A.has(w))};
+const nameInNote=(name,nt)=>{const t=toks(name);if(!t.length)return false;const h=t.filter(w=>nt.has(w)).length;return h>=Math.min(t.length,2)&&h/t.length>=0.66};
+const schoolOf=c=>S.schools.find(s=>s.code===c)||{};
+function conflict(j,e){const s=schoolOf(e.school);
+ if(sameOrg(j.org,s.name))return"works at the entrant’s school";
+ if(s.email&&String(j.email).toLowerCase()===String(s.email).toLowerCase())return"is the school’s coordinator";
+ if(j.coi==="Yes"&&j.coiNote){const nt=new Set(toks(j.coiNote)),raw=j.coiNote.toLowerCase();
+  if(raw.includes(e.id))return"listed in their conflict note";
+  if(nameInNote(s.name,nt))return"school named in their conflict note";
+  for(const x of e.students||[]){const nm=toks(x.n);if(nm.length>=2&&nm.every(w=>nt.has(w)))return"student named in their conflict note"}}
+ return""}
+const isPref=(j,e)=>(j.cats||[]).includes(e.cat)&&(j.ages||[]).includes(e.age);
+function runAssign(){const E=S.entries,J=S.judges,load={},A={},warn=[];J.forEach(j=>load[j.code]=0);
+ const info=E.map(e=>{const ok=J.filter(j=>!conflict(j,e));return{e,ok,pref:ok.filter(j=>isPref(j,e))}});
+ info.sort((a,b)=>a.pref.length-b.pref.length||a.ok.length-b.ok.length);
+ const pick=(arr,n,ex,e)=>arr.filter(j=>!ex.includes(j.code)).sort((a,b)=>(uncertain(a,e)?1:0)-(uncertain(b,e)?1:0)||load[a.code]-load[b.code]||Math.random()-.5).slice(0,n);
+ info.forEach(x=>{let ch=pick(x.pref,2,[],x.e);if(ch.length<2)ch=ch.concat(pick(x.ok,2-ch.length,ch.map(j=>j.code),x.e));
+  if(ch.length<2)warn.push(x.e.id+" only has "+ch.length+" eligible judge"+(ch.length===1?"":"s"));
+  A[x.e.id]=ch.map(j=>j.code);ch.forEach(j=>load[j.code]++)});
+ for(const mode of [0,1,2,3]){const target=mode>1?2:1;
+  for(let it=0;it<8000;it++){const codes=Object.keys(load).sort((a,b)=>load[b]-load[a]);let moved=false;
+   if(!codes.length||load[codes[0]]-load[codes[codes.length-1]]<=target)break;
+   find:for(const gc of codes){for(const rc of[...codes].reverse()){if(load[gc]-load[rc]<=target)continue;
+    for(const x of info){const t=A[x.e.id];if(!t.includes(gc)||t.includes(rc))continue;const r=x.ok.find(j=>j.code===rc);if(!r)continue;const u=!!uncertain(r,x.e),pf=isPref(r,x.e);if(![pf&&!u,pf,!u,true][mode])continue;
+     t[t.indexOf(gc)]=rc;load[gc]--;load[rc]++;moved=true;break find}}}
+   if(!moved)break}}
+ return{A,load,warn}}
+async function assignAll(){if(!S.judges.length||!S.entries.length){alert("You need at least one entry and one judge first.");return}
+ if(!confirm("Are you sure you want to assign the projects?"+(S.assign.length?"\n\nThis replaces every current assignment, including any you changed by hand.":"")+(CUT&&!isClosed()?"\n\nSubmissions are still open until "+fmtCut(CUT)+". Anything submitted after this will not be assigned.":"")))return;
+ const r=runAssign(),rows=[];Object.entries(r.A).forEach(([id,cs])=>cs.forEach((c,i)=>rows.push({entry_id:id,judge_code:c,slot:i+1})));
+ let d=await sb.from("assignments").delete().neq("entry_id","");if(d.error){alert("Couldn’t clear old assignments: "+d.error.message);return}
+ for(let i=0;i<rows.length;i+=500){const x=await sb.from("assignments").insert(rows.slice(i,i+500));if(x.error){alert("Couldn’t save assignments: "+x.error.message);return}}
+ await sb.from("entries").update({conflictChecked:false}).neq("id","");await loadAdmin();const l=Object.values(r.load),out=S.assign.filter(a=>{const j=S.judges.find(x=>x.code===a.judge_code),e=S.entries.find(x=>x.id===a.entry_id);return j&&e&&!isPref(j,e)}).length;
+ at="assign";flash=`<b>Projects assigned.</b><p class="small" style="margin:8px 0 0">${S.entries.length} projects, 2 judges each. Each judge has between ${Math.min(...l)} and ${Math.max(...l)} projects. ${out} assignment${out===1?" is":"s are"} outside a judge’s stated preferences.${r.warn.length?"<br><b>Needs attention:</b> "+esc(r.warn.join("; "))+".":""}${S.judges.some(j=>j.coi==="Yes"&&j.coiNote)?"<br>Some judges wrote conflict notes. Please read them in the Judges tab, because notes are matched by school, student name and entry ID only.":""}</p>`;render()}
+const outPref=j=>S.assign.filter(a=>a.judge_code===j.code).filter(a=>{const e=S.entries.find(x=>x.id===a.entry_id);return e&&!isPref(j,e)}).length;
+const jnotes=j=>{const n=[],o=outPref(j);if(o)n.push(o+" outside preferences");if(j.coi==="Yes"&&j.coiNote)n.push("Declared conflicts: "+j.coiNote);return n.join(". ")};
+function exportAssign(){const wb=XLSX.utils.book_new(),by={},eb=Object.fromEntries(S.entries.map(e=>[e.id,e])),js=[...S.judges].sort((a,b)=>a.name.localeCompare(b.name));
+ S.assign.forEach(a=>(by[a.judge_code]=by[a.judge_code]||[]).push(a.entry_id));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(js.map(j=>({Judge:j.name,"Judge Number":j.code,"School/Institution":j.org,"Assigned Submissions":(by[j.code]||[]).length,Notes:jnotes(j)}))),"Assignment Summary");
+ js.forEach(j=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet((by[j.code]||[]).map(id=>eb[id]).filter(Boolean).sort((a,b)=>a.id.localeCompare(b.id)).map(e=>({Entry_ID:e.id,Entry_Category:e.cat,Age_Division:e.age,Entry_Title:e.title,Summary_Of_Entry:e.summary,Project_Link:e.link||"",Project_File_Link:e.fileUrl||"",Report_Link:e.report||""})),{header:["Entry_ID","Entry_Category","Age_Division","Entry_Title","Summary_Of_Entry","Project_Link","Project_File_Link","Report_Link"]}),(j.code+" "+j.name).replace(/[\\\/?*\[\]:]/g,"").slice(0,31)));
+ XLSX.writeFile(wb,"STS_Judge_Assignments_"+new Date().toISOString().slice(0,10)+".xlsx")}
+async function adminTab(t){at=t;await loadAdmin();render()}
+
+/* ===== cut-off, master judge columns, conflict checks ===== */
+const fmtCut=d=>new Date(d).toLocaleString("en-AU",{timeZone:"Australia/Perth",weekday:"short",day:"numeric",month:"short",year:"numeric",hour:"numeric",minute:"2-digit"})+" (Perth time)";
+const isClosed=()=>!!CUT&&Date.now()>new Date(CUT).getTime();
+const cutNote=()=>CUT?`<div class="note small"><b>${isClosed()?"Entries have closed.":"Entries close:"}</b> ${fmtCut(CUT)}${isClosed()?"<br>Entries can no longer be added or edited. Please contact STAWA if something needs to change.":"<br>You can edit your entries until then."}</div>`:"";
+async function loadCut(){try{CUT=await rpc("submission_cutoff")}catch(e){}}
+function cutCard(){let val="";if(CUT)val=new Date(new Date(CUT).getTime()+8*3600e3).toISOString().slice(0,16);
+ return `<div class="card"><b>Submission cut-off</b> <span class="mut small">${CUT?(isClosed()?"Closed since "+fmtCut(CUT):"Entries close "+fmtCut(CUT)):"No cut-off set. Schools can submit at any time."}</span><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:10px"><label style="margin:0">Date and time (Perth)<input type="datetime-local" id="cut" value="${val}"></label><button class="b" onclick="saveCut()">Save cut-off</button>${CUT?`<button class="g" onclick="clearCut()">Remove cut-off</button>`:""}</div></div>`}
+async function saveCut(){const v=g("cut").value;if(!v){alert("Choose a date and time first.");return}
+ const iso=new Date(v+":00+08:00").toISOString(),{error}=await sb.from("settings").upsert({key:"submission_cutoff",value:iso});
+ if(error){alert("Couldn’t save the cut-off: "+error.message);return}CUT=iso;render()}
+async function clearCut(){const {error}=await sb.from("settings").upsert({key:"submission_cutoff",value:""});if(error){alert("Couldn’t remove the cut-off: "+error.message);return}CUT=null;render()}
+const links3=e=>{const u=(h,t)=>`<a href="${esc(h)}" target="_blank" rel="noopener">${esc(t)}</a>`;
+ return[/^https?:/.test(e.link||"")?u(e.link,"Open link"):"",e.fileUrl?u(e.fileUrl,e.file||"Open file"):"",e.report?u(e.report,e.reportName||"Open report"):""]};
+const judgeSlots=()=>{const m={};S.assign.forEach(a=>{(m[a.entry_id]=m[a.entry_id]||{})[a.slot]=a.judge_code});return m};
+const NONE=/^\s*(n\/?a|no|none|nil|not applicable|no conflicts?)\b/i,OWN=/\b(my|our)\s+(own\s+)?(school|college|class|students|primary|classroom)|\bi\s+(teach|work)\b|students\s+i\s+teach/i;
+const gradeSpan=l=>{const k=/K-(\d+)/.exec(l);if(k)return[0,+k[1]];const m=/(\d+)\s*-\s*(\d+)/.exec(l);return m?[+m[1],+m[2]]:[0,12]};
+function noteHints(n){const t=n.toLowerCase(),ages=[],cats=[];let m;const re=/(?:years?|yrs?|grades?)\s*(\d{1,2})(?:\s*(?:-|–|to|and|&)\s*(\d{1,2}))?/g;
+ while((m=re.exec(t))){const a=+m[1],b=m[2]?+m[2]:a;ages.push([Math.min(a,b),Math.max(a,b)])}
+ const k=/\b(?:k|kindy|kindergarten)\s*(?:-|–|to)\s*(\d{1,2})/.exec(t);if(k)ages.push([0,+k[1]]);
+ CATS.forEach(c=>{if(t.includes(c.split(" ").pop().toLowerCase()))cats.push(c)});return{ages,cats}}
+function noteInfo(j){const n=(j.coiNote||"").trim(),key=j.code+"|"+n+"|"+(j.noteReviewed?1:0);if(NC[key])return NC[key];let r={kind:"none"};
+ if(j.noteReviewed)r={kind:"reviewed"};else if(j.coi==="Yes"&&n&&!NONE.test(n)){const nt=new Set(toks(n)),raw=n.toLowerCase();
+  const named=S.schools.some(s=>nameInNote(s.name,nt))||S.entries.some(en=>raw.includes(en.id)||(en.students||[]).some(x=>{const nm=toks(x.n);return nm.length>=2&&nm.every(w=>nt.has(w))})),h=noteHints(n);
+  r=named?{kind:"named"}:OWN.test(n)?{kind:"own"}:(h.ages.length||h.cats.length)?{kind:"hints",h}:{kind:"unclear"}}
+ return NC[key]=r}
+function uncertain(j,e){const r=noteInfo(j),q="note says “"+(j.coiNote||"").trim().slice(0,90)+"”";
+ if(r.kind==="hints"){const sp=gradeSpan(e.age);return(!r.h.ages.length||r.h.ages.some(a=>a[0]<=sp[1]&&sp[0]<=a[1]))&&(!r.h.cats.length||r.h.cats.includes(e.cat))?q:""}
+ return r.kind==="unclear"?q:""}
+function flagsFor(e,A){const out=[];[1,2].forEach(s=>{const c=(A[e.id]||{})[s],j=c&&S.judges.find(x=>x.code===c);if(!j)return;const k=conflict(j,e);
+ if(k)out.push(j.code+" "+j.name+" "+k);else{const u=uncertain(j,e);if(u)out.push(j.code+" "+j.name+": "+u)}});return out}
+function aMaster(){const A=judgeSlots(),has=S.assign.length>0,rows=S.entries.map(e=>({e,f:has?flagsFor(e,A):[]})),need=r=>r.f.length&&!r.e.conflictChecked;
+ rows.sort((a,b)=>(need(a)?0:1)-(need(b)?0:1)||a.e.id.localeCompare(b.e.id));const todo=rows.filter(need).length;
+ const head=(has?["Judge 1","Judge 2"]:[]).concat(["Entry ID","Category","Age division","Title","Type","Students","School","Coordinator","Project link","Project file","Report","Publication"],has?["Conflict check"]:[],["Edit"]);
+ const cell=(e,s)=>{const c=(A[e.id]||{})[s]||"",j=S.judges.find(x=>x.code===c),k=j&&conflict(j,e);
+  return `<input value="${c}" maxlength="3" inputmode="numeric" aria-label="Judge ${s} number" style="width:64px;margin:0" title="${esc(j?j.name:"Type a judge number")}" onchange="moveEntry('${e.id}',${s},this.value.trim())">${k?`<span title="${esc(k)}"> ⚠</span>`:""}<div class="mut small">${esc(j?j.name:"")}</div>`};
+ const chk=r=>`<td>${r.f.length?(r.e.conflictChecked?`<span class="mut small">Checked ✓</span>`:`<b>⚠ Check</b><div class="small">${r.f.map(esc).join("<br>")}</div><button class="g s" onclick="markChecked('${r.e.id}')">Mark as checked</button>`):""}</td>`;
+ return(todo?`<div class="flash">⚠ ${todo} project${todo===1?" needs":"s need"} a conflict check. ${todo===1?"It is":"They are"} at the top of this list until marked as checked.</div>`:"")+
+ tbl(head,rows.map(r=>{const e=r.e,s=schoolOf(e.school),L=links3(e);
+  return `<tr${need(r)?' style="background:var(--soft)"':""}>${has?`<td>${cell(e,1)}</td><td>${cell(e,2)}</td>`:""}<td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${e.type}</td><td>${esc((e.students||[]).map(x=>x.n+" ("+x.y+")").join(", "))}</td><td>${esc(s.name)}</td><td>${esc(s.coord)}<br><span class="mut">${esc(s.email)}</span></td><td>${L[0]}</td><td>${L[1]}</td><td>${L[2]}</td><td>${e.pub?"Yes":"No"}</td>${has?chk(r):""}<td><button class="g s" onclick="adminEdit('${e.id}')">Edit</button></td></tr>`}))}
+async function reviewNote(c){const y=scrollY,{error}=await sb.from("judges").update({noteReviewed:true}).eq("code",c);if(error){alert("Couldn’t save: "+error.message);return}await loadAdmin();render();scrollTo(0,y)}
+async function markChecked(id){const y=scrollY,{error}=await sb.from("entries").update({conflictChecked:true}).eq("id",id);if(error){alert("Couldn’t save: "+error.message);return}
+ await loadAdmin();render();scrollTo(0,y)}
+async function moveEntry(id,slot,code){const y=scrollY,done=()=>{render();scrollTo(0,y)},A=judgeSlots(),e=S.entries.find(x=>x.id===id),cur2=(A[id]||{})[slot];
+ if(code===(cur2||""))return;
+ if(code){const j=S.judges.find(x=>x.code===code);
+  if(!j){alert("There is no judge with the number "+code+".");return done()}
+  if((A[id]||{})[3-slot]===code){alert(j.name+" already has this project as the other judge.");return done()}
+  const why=conflict(j,e);if(why&&!confirm(j.name+" "+why+". Assign this project to them anyway?"))return done()}
+ let r;if(!code)r=await sb.from("assignments").delete().eq("entry_id",id).eq("slot",slot);
+ else if(cur2)r=await sb.from("assignments").update({judge_code:code}).eq("entry_id",id).eq("slot",slot);
+ else r=await sb.from("assignments").insert({entry_id:id,judge_code:code,slot});
+ if(r.error){alert("Couldn’t move that project: "+r.error.message);return done()}
+ await sb.from("entries").update({conflictChecked:false}).eq("id",id);
+ await loadAdmin();done()}
+function aAssign(){const cnt={};S.assign.forEach(a=>cnt[a.judge_code]=(cnt[a.judge_code]||0)+1);const js=[...S.judges].sort((a,b)=>a.name.localeCompare(b.name));
+ return `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"><button class="b" onclick="assignAll()">Assign projects</button>${S.assign.length?`<button class="g" onclick="exportAssign()">Download assignments Excel</button>`:""}</div>
+ <p class="mut small">Nothing is assigned until you click Assign projects, and you’ll be asked to confirm. Every project goes to two different judges. Judges never get a project from their own school or one they have a declared conflict with, workloads are kept as even as possible, and category and age preferences are used wherever they can be. To move a project, open the Master list and type a different judge number next to it. It leaves the old judge’s list and joins the new judge’s list straight away.</p>`+
+ tbl(["Judge","Number","School or institution","Assigned","Notes","Conflict note"],js.map(j=>`<tr><td>${esc(j.name)}</td><td>${j.code}</td><td>${esc(j.org)}</td><td>${cnt[j.code]||0}</td><td>${esc(jnotes(j))}</td><td>${j.coi==="Yes"&&(j.coiNote||"").trim()&&!NONE.test(j.coiNote)?(j.noteReviewed?`<span class="mut small">Reviewed ✓</span>`:`<button class="g s" onclick="reviewNote('${j.code}')">Mark as reviewed</button>`):""}</td></tr>`))}
 async function init(){
  if(!CONFIGURED){g("app").innerHTML='<div class="card"><h2>Almost there</h2><p>Open <b>index.html</b> in a text editor and paste your Supabase URL and key near the top of the script. README.md, step 4, shows where to find them.</p></div>';return}
  try{const {data}=await sb.auth.getSession();if(data.session&&await rpc("is_admin")){await loadAdmin();adm=true}}catch(e){}
- route()}
+ await loadCut();route()}
 init();
 </script>
 </body>
