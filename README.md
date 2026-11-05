@@ -47,5 +47,5 @@ You get a web address straight away. Share that with schools and judges, and opt
 - **Logo and colours** are inside `index.html` if you ever want to change them.
 
 ## Updating an existing install (judging update)
-1. In Supabase, open **SQL Editor**, paste all of `update-2-judging.sql` and click **Run**, then do the same with `update-3-cutoff.sql` and `update-4-lock-edits.sql`. All are safe to run twice, and you only need the ones you haven't run yet.
+1. In Supabase, open **SQL Editor**, paste all of `update-2-judging.sql` and click **Run**, then do the same with `update-3-cutoff.sql`, `update-4-lock-edits.sql`, `update-5-scoring.sql` and `update-6-dates.sql`. All are safe to run twice, and you only need the ones you haven't run yet.
 2. In GitHub, upload the new `index.html` to your repository (**Add file**, **Upload files**, **Commit changes**). Wait a few minutes, then reload the site.
