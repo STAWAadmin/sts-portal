@@ -54,6 +54,38 @@ th{background:var(--soft);white-space:nowrap}
 .chk{display:flex;flex-wrap:wrap;gap:2px 18px;margin-bottom:12px}
 .note{background:var(--soft);border-left:4px solid var(--chip);border-radius:6px;padding:10px 12px;margin:0 0 14px}
 a{color:var(--lnk)}
+/* ===== form look (matches the supplied mock-ups) ===== */
+:root{--field:#f2f6f8;--bd:#111418}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--field:#172637;--bd:#6f8aa3}}
+:root[data-theme="dark"]{--field:#172637;--bd:#6f8aa3}
+label{font-weight:700;font-size:18px;margin:0 0 20px}
+.hint{display:block;font-weight:400;color:var(--mut);font-size:15px;margin:0 0 6px}
+input,select,textarea{margin-top:6px;padding:12px 14px;font-size:17px;background:var(--field);border:1px solid var(--bd);border-radius:12px}
+textarea{min-height:104px}
+input[type=checkbox],input[type=radio]{width:18px;height:18px;margin:0 8px 0 0;accent-color:var(--pri);padding:0}
+label.ck{font-weight:400;color:var(--mut);font-size:16px;margin:0}
+input[type=file]{padding:6px 8px}
+input[type=file]::file-selector-button{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;margin-right:10px;font:inherit;font-size:15px}
+.note{border-left:8px solid var(--chip);border-radius:12px;font-size:14px;line-height:1.45}
+.stu{border-left:8px solid var(--chip);padding-left:14px;margin-bottom:16px;border-radius:4px}
+.card.form{background:transparent;border:0;padding:0;margin:0}
+h1.ft{font-size:34px;line-height:1.15;margin:6px 0 4px}
+.sub{color:var(--mut);margin:0 0 22px}
+.q{font-weight:700;font-size:18px;margin:6px 0 8px}
+.chk{gap:6px 20px;margin-bottom:20px}
+button.b{border-radius:12px;font-size:18px;padding:12px 24px}
+button.b.s,button.g.s{font-size:14px;padding:4px 10px;border-radius:8px}
+.eid{border-radius:10px;border:1.5px solid #111418}
+.sg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end}
+.sg label{margin:0;font-size:16px}
+.marks{display:flex;flex-wrap:wrap;gap:10px 18px;margin:10px 0 4px}
+.marks label{display:flex;flex-direction:column;align-items:center;margin:0;font-size:17px;gap:4px;color:var(--ink);font-weight:700}
+.marks input{margin:0}
+.field{padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--field);min-height:48px;margin-top:6px;word-break:break-all;font-weight:400;font-size:17px}
+button.g.del{color:var(--bad);border-color:var(--bad)}
+.row2{display:grid;gap:0 24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.form .row{display:block}
+.card.form>label.ck{margin:0 0 20px}
 </style>
 </head>
 <body>
@@ -130,9 +162,9 @@ function school(){
  return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(sc.name)}</h2><span class="mut small">School code ${sc.code} · ${esc(sc.coord)}</span></div>${subOpen()?`<button class="b" onclick="sub='new';render()">New entry</button>`:""}<button class="g" onclick="ses=null;EDIT=null;render()">Log out</button></div></div>
  ${cutNote()}<h2>Your entries</h2>${es.length?`<div class="scroll"><table><tr><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Students</th><th>Project links</th><th></th></tr>${es.map(e=>`<tr><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.students.map(s=>s.n).join(", "))}</td><td>${lnk(e)}</td><td>${isClosed()?"":`<button class="g s" onclick="startEdit('${e.id}')">Edit</button>`}</td></tr>`).join("")}</table></div>`:`<p class="mut">No entries yet. Choose New entry to add your first student or group.</p>`}`}
 
-function regForm(){const st=wstate(W.rs,W.re);if(st!=="open")return winCard("School registration",W.rs,W.re,st);return `<div class="card"><button class="g s" onclick="sub='';render()">Back to log in</button><h2 style="margin-top:14px">Register your school</h2><p class="mut small">You will get a 4-digit school code. In the live version it is also emailed to the coordinator.</p>
-<div class="row">${F("School name","rn","text","Full name, no abbreviations")}${F("STS coordinator","rc","text","First and last name")}${F("Email","re","email")}${F("Contact number","rp","tel")}${F("How many students are participating in STS at your school?","rs","number","This is how many students at your school are taking part in your school’s prejudging. Whole number.")}${F("Expected number of entries to submit to STS this year","rx","number","This is the number of students you are entering into the competition. Whole number.")}</div><div class="note small"><b>Important:</b> schools that submit more than five (5) entries into the competition will be required to provide judges. The number of judges per school will depend on the number of entries submitted. For example:<br>1 to 5 entries: a judge is optional but appreciated<br>6 to 15 entries: one judge<br>16 to 25 entries: two judges, and so on.<br>Being part of the STS judging panel counts towards your PD as volunteers keep the competition going.</div><div class="row">${F("Approximate number of judges to register","rj","number","Whole number.")}</div>
-<div class="err" id="rerr"></div><button class="b" onclick="register()">Register school</button></div>`}
+function regForm(){const st=wstate(W.rs,W.re);if(st!=="open")return winCard("School registration",W.rs,W.re,st);return `<div class="card form"><button class="g s" onclick="sub='';render()">Back to log in</button><h1 class="ft" style="margin-top:14px">Register Your School</h1><p class="sub">You will get a 4-digit school code to log in with.</p>
+<div class="row">${F("School Name","rn","text","Full name, no abbreviations")}${F("STS Coordinator","rc","text","First and last name")}${F("Email","re","email")}${F("Contact Number","rp","tel")}${F("How many students are participating in STS at your school?","rs","number","This is how many students at your school are taking part in your school’s prejudging. <b><i>(Please use a whole number).</i></b>")}${F("Expected number of entries to submit to STS this year.","rx","number","This is the number of students you are entering into the competition <b><i>(Please use a whole number).</i></b>")}</div><div class="note small"><b>Important:</b> schools that submit more than five (5) entries into the competition will be required to provide judges. The number of judges per school will depend on the number of entries submitted. For example:<br>1 to 5 entries: a judge is optional but appreciated<br>6 to 15 entries: one judge<br>16 to 25 entries: two judges, and so on.<br>Being part of the STS judging panel counts towards your PD as volunteers keep the competition going.</div><div class="row">${F("Approximate number of judges to register.","rj","number","<b><i>(Please use a whole number).</i></b>")}</div>
+<div class="err" id="rerr"></div><button class="b" onclick="register()">Register School</button></div>`}
 const F=(l,id,t="text",h="")=>`<label>${l}${h?`<span class="mut small" style="display:block;font-weight:400">${h}</span>`:""}<input id="${id}" type="${t}"${t==="number"?' min="0" step="1"':""}></label>`;
 async function register(){
  const v=id=>g(id).value.trim(),em=v("re").toLowerCase();
@@ -149,39 +181,42 @@ async function login(){const c=g("lc").value.trim(),em=g("le").value.trim().toLo
 function nextNum(sc){const n=S.entries.filter(e=>e.school===sc.code).map(e=>+e.id.slice(4));return Math.max(0,...n)+1}
 const SEL=a=>["Select…",...a];
 function entryForm(sc){const n=nextNum(sc),id=sc.code+String(n).padStart(2,"0");
- return `<div class="card"><button class="g s" onclick="cancelEdit()">Back</button><h2 style="margin-top:14px">${EDIT?"Edit entry":"New entry"}</h2>
- <p>${EDIT?"Entry ID ":"This entry’s ID will be "}${eid(EDIT?EDIT.id:id)}</p>
- <div class="row"><label>Entry category<select id="cat">${opts(SEL(CATS))}</select></label><label>Age division<select id="age">${opts(SEL(AGES))}</select></label><label>Entry type<select id="type" onchange="studs()">${opts(["Individual","Group"])}</select></label></div>
+ return `<div class="card form"><button class="g s" onclick="cancelEdit()">Back</button><h1 class="ft" style="margin-top:14px">${EDIT?"Edit Entry":"New Entry"}</h1>
+ <p class="sub">${EDIT?"Entry ID ":"This entry’s ID will be "}${eid(EDIT?EDIT.id:id)}</p>
+ <label>Entry Category<select id="cat">${opts(SEL(CATS))}</select></label>
+ <label>Age Division<select id="age">${opts(SEL(AGES))}</select></label>
+ <label>Entry Type<select id="type" onchange="studs()">${opts(["Individual","Group"])}</select></label>
  <div id="studs"></div>
- <label>Entry title<input id="title"></label>
- <label>Summary of the entry <span class="mut small">(around 50 words)</span><textarea id="sum" oninput="g('wc').textContent=(this.value.trim()?this.value.trim().split(/\\s+/).length:0)+' words'"></textarea><span class="mut small" id="wc">0 words</span></label>
- <p class="mut small">You can add a project link, a project file and a report, or all three. A link or a file is required.</p>
- <div class="row"><label>Project link <span class="mut small">(for example a YouTube or Vimeo video)</span><input id="link" placeholder="https://"></label><label>Project file<input id="pf" type="file"><span class="mut small" id="curf"></span></label></div>
- <label>Report <span class="mut small">(if your entry needs one)</span><input id="rf" type="file"><span class="mut small" id="curr"></span></label>
- <div class="note small"><b>School details</b> (from your registration)<br>${esc(sc.name)}<br>${esc(sc.coord)} · ${esc(sc.email)}</div>
- <div class="note small"><b>Safety declaration</b><ul style="margin:6px 0 8px;padding-left:20px"><li>I am authorised to submit this entry on behalf of the school and student(s).</li><li>The school has obtained and retains the required parent/guardian consent for each student to participate in the STAWA Science Talent Search.</li><li>An appropriate safety risk assessment was undertaken before any practical or investigative work commenced, and appropriate safety procedures and supervision were implemented.</li><li>To the best of my knowledge, the submitted work meets the requirements of the STAWA Science Talent Search.</li><li>I understand that entries will be accessed by STAWA staff, authorised volunteers and judges for the purposes of administering and judging the competition.</li></ul><b>By ticking this box, I confirm that I am authorised to make this declaration on behalf of the school.</b></div>
+ <label>Entry Title<input id="title"></label>
+ <label>Summary of the entry <span class="hint" style="display:inline">(around 50 words)</span><textarea id="sum" oninput="g('wc').textContent=(this.value.trim()?this.value.trim().split(/\\s+/).length:0)+' words'"></textarea><span class="hint" id="wc">0 words</span></label>
+ <p class="hint">You can add a project link, a project file and a report, or all three. A link or a file is required.</p>
+ <label>Project Link <span class="hint" style="display:inline">(for example a YouTube or Vimeo video)</span><input id="link" placeholder="https://"></label>
+ <label>Project File Upload<input id="pf" type="file"><span class="hint" id="curf"></span></label>
+ <label>Report <span class="hint" style="display:inline">(if your entry needs one)</span><input id="rf" type="file"><span class="hint" id="curr"></span></label>
+ <div class="note small"><b>School Details</b> (from your registration)<br>${esc(sc.name)}<br>${esc(sc.coord)} · ${esc(sc.email)}</div>
+ <div class="note small"><b>Safety Declaration</b><ul style="margin:6px 0 8px;padding-left:20px"><li>I am authorised to submit this entry on behalf of the school and student(s).</li><li>The school has obtained and retains the required parent/guardian consent for each student to participate in the STAWA Science Talent Search.</li><li>An appropriate safety risk assessment was undertaken before any practical or investigative work commenced, and appropriate safety procedures and supervision were implemented.</li><li>To the best of my knowledge, the submitted work meets the requirements of the STAWA Science Talent Search.</li><li>I understand that entries will be accessed by STAWA staff, authorised volunteers and judges for the purposes of administering and judging the competition.</li></ul><b>By ticking this box, I confirm that I am authorised to make this declaration on behalf of the school.</b></div>
  <label class="ck"><input type="checkbox" id="safe">I confirm the safety declaration above (required).</label>
- <div class="note small"><b>Work publication</b><br>Has the school obtained parent/guardian permission for STAWA to use this student’s submitted work, including images or excerpts from their entry, in STAWA communications and educational or promotional materials? This may include the STAWA website, social media, newsletters, publications and materials promoting the Science Talent Search and science education. Selecting No will not affect the student’s entry or judging.</div>
+ <div class="note small"><b>Work publication</b><br>Has the school obtained parent/guardian permission for STAWA to use this student’s submitted work, including images or excerpts from their entry, in STAWA communications and educational or promotional materials? This may include the STAWA website, social media, newsletters, publications and materials promoting the Science Talent Search and science education. Not ticking the below box will not affect the student’s entry or judging.</div>
  <label class="ck"><input type="checkbox" id="pub">Yes, the school has obtained this permission (optional).</label>
  <div class="err" id="eerr"></div><button class="b" onclick="saveEntry()">${EDIT?"Save changes":"Submit entry"}</button></div>`}
 function studs(){const grp=g("type").value==="Group";
  g("studs").innerHTML=(grp?`<label style="max-width:240px">Number of students<select id="cnt" onchange="blocks()">${opts(["2","3","4"])}</select></label>`:"")+`<div id="blk"></div>`;blocks()}
 function blocks(){const n=g("type").value==="Group"?+g("cnt").value:1;let h="";
- for(let i=0;i<n;i++)h+=`<div class="stu"><b class="small">${n>1?"Student "+(i+1):"Student"}</b><div class="row"><label>Full name (for certificate)<input id="sn${i}"></label><label>Year level<select id="sy${i}">${opts(SEL(YEARS))}</select></label><label>Gender<select id="sg${i}">${opts(SEL(["Male","Female","Other","Prefer Not To Say"]))}</select></label><label>Aboriginal and/or Torres Strait Islander<select id="sa${i}">${opts(SEL(["Yes","No","Prefer Not To Say"]))}</select></label></div></div>`;
+ for(let i=0;i<n;i++)h+=`<div class="stu"><div class="sg"><label style="grid-column:span 2">${n>1?"Student "+(i+1):"Student"}<span class="hint">Full name (for certificate)</span><input id="sn${i}"></label><label>Year Level<select id="sy${i}">${opts(SEL(YEARS))}</select></label><label>Gender<select id="sg${i}">${opts(SEL(["Male","Female","Other","Prefer Not To Say"]))}</select></label><label>Aboriginal and/or Torres Strait Islander<select id="sa${i}">${opts(SEL(["Yes","No","Prefer Not To Say"]))}</select></label></div></div>`;
  g("blk").innerHTML=h}
 const ck=(c,a)=>`<div class="chk">${a.map(x=>`<label class="ck"><input type="checkbox" class="${c}" value="${x}">${x}</label>`).join("")}</div>`;
-function judgeReg(){if(!JEDIT){const st=wstate(W.js,W.je);if(st!=="open")return winCard("Judge registration",W.js,W.je,st)}return `<div class="card"><button class="g s" onclick="${JEDIT?"cancelJudgeEdit()":"sub='';render()"}">${JEDIT?"Back":"Back to log in"}</button><h2 style="margin-top:14px">${JEDIT?"Edit judge":"Judge registration"}</h2>${JEDIT?`<p class="mut small">Judge number ${JEDIT.code}</p>`:`<p class="mut small">You will get a 3-digit judge number to log in with.</p>`}
-<div class="row">${F("First name","jf")}${F("Surname","jl")}${F("Email","je","email")}${F("Phone number","jp","tel")}${F("School, institute or company","jo")}</div>
-<label style="max-width:460px">Have you judged the Science Talent Search competition in the last five (5) years?<select id="jy">${opts(SEL(["Yes","No"]))}</select></label>
-<b class="small">Entry categories you would prefer to judge (select any)</b>${ck("jc",CATS)}
-<b class="small">Age divisions you would prefer to judge (select any)</b>${ck("ja",AGES)}
-<b class="small">If you are selected to judge Years 7-12 Science Investigation or Science Communication Video, which disciplines would you prefer to judge? (select any)</b>${ck("jd",DISC)}
+function judgeReg(){if(!JEDIT){const st=wstate(W.js,W.je);if(st!=="open")return winCard("Judge registration",W.js,W.je,st)}return `<div class="card form"><button class="g s" onclick="${JEDIT?"cancelJudgeEdit()":"sub='';render()"}">${JEDIT?"Back":"Back to log in"}</button><h1 class="ft" style="margin-top:14px">${JEDIT?"Edit Judge":"Judge Registration"}</h1>${JEDIT?`<p class="sub">Judge number ${JEDIT.code}</p>`:`<p class="sub">You will get a 3-digit judge number to log in with.</p>`}
+<div class="row2">${F("First Name","jf")}${F("Surname","jl")}${F("Email","je","email")}${F("Phone Number","jp","tel")}</div>${F("School/Institute/Company","jo")}
+<label>Have you judged the Science Talent Search competition in the last five (5) years?<select id="jy">${opts(SEL(["Yes","No"]))}</select></label>
+<div class="q">Entry categories you would prefer to judge (select any)</div>${ck("jc",CATS)}
+<div class="q">Age divisions you would prefer to judge (select any)</div>${ck("ja",AGES)}
+<div class="q">If you are selected to judge Years 7-12 Science Investigation or Science Communication Video, which disciplines would you prefer to judge? (select any)</div>${ck("jd",DISC)}
 <div class="note small">Where possible, members of the organising committee, judges and sponsors must not judge any project or take part in any decision relating to a matter where they have a conflict of interest. Sources of conflict can include:<br>(i) A familial or other close personal relationship, for example living in the same household or being the child of a close friend<br>(ii) A teacher/student relationship (including a student at the same school, but a different class)<br>(iii) A mentoring relationship<br>(iv) A personal or business relationship with a sponsor<br>(v) Previous exposure to the entry, for example at a school or regional fair</div>
-<label style="max-width:460px">Do you have any conflicts of interest?<select id="jk" onchange="jcond('k')">${opts(SEL(["Yes","No"]))}</select></label><div id="jk2"></div>
-<label style="max-width:460px">Are any of the students you teach entered in this year’s competition? <span class="mut small">(Sometimes you may be required to judge entries from schools you are associated with.)</span><select id="jt" onchange="jcond('t')">${opts(SEL(["Yes","No"]))}</select></label><div id="jt2"></div>
-<div class="err" id="jerr"></div><button class="b" onclick="${JEDIT?'saveJudgeEdit()':'regJudge()'}">${JEDIT?"Save changes":"Register as a judge"}</button></div>`}
-function jcond(w){if(w==="k")g("jk2").innerHTML=g("jk").value==="Yes"?`<label>List any individual entrants from other schools with whom you are associated <span class="mut small">(for example as a tutor, mentor, relative or family friend)</span><textarea id="jr"></textarea></label>`:"";
- else g("jt2").innerHTML=g("jt").value==="Yes"?`<b class="small">Age divisions your students have entered (select any)</b>${ck("jsa",AGES)}<b class="small">Categories your students have entered (select any)</b>${ck("jsc",CATS)}`:""}
+<label>Do you have any conflicts of interest?<select id="jk" onchange="jcond('k')">${opts(SEL(["Yes","No"]))}</select></label><div id="jk2"></div>
+<label>Are any of the students you teach entered in this year’s competition? <span class="hint">(Sometimes you may be required to judge entries from schools you are associated with).</span><select id="jt" onchange="jcond('t')">${opts(SEL(["Yes","No"]))}</select></label><div id="jt2"></div>
+<div class="err" id="jerr"></div><button class="b" onclick="${JEDIT?'saveJudgeEdit()':'regJudge()'}">${JEDIT?"Save changes":"Register As A Judge"}</button></div>`}
+function jcond(w){if(w==="k")g("jk2").innerHTML=g("jk").value==="Yes"?`<label>List any individual entrants from other schools with whom you are associated <span style="font-weight:400">(for example as a tutor, mentor, relative or family friend).</span><textarea id="jr"></textarea></label>`:"";
+ else g("jt2").innerHTML=g("jt").value==="Yes"?`<div class="q">Age divisions your students have entered (select any)</div>${ck("jsa",AGES)}<div class="q">Categories your students have entered (select any)</div>${ck("jsc",CATS)}`:""}
 async function regJudge(){const v=id=>g(id).value.trim(),pick=c=>[...document.querySelectorAll("."+c+":checked")].map(x=>x.value),er=[];
  if(!v("jf")||!v("jl"))er.push("Enter your first name and surname.");
  if(!v("je").includes("@"))er.push("Enter a valid email.");
@@ -389,16 +424,20 @@ function judgePortal(){if(JF)return judgeForm();
  return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><div style="margin-right:auto"><h2 style="margin:0">${esc(JU.judge.name)}</h2><span class="mut small">Judge number ${JU.judge.code}</span></div><button class="g s" onclick="judgeRefresh()">Refresh</button><button class="g" onclick="jses=false;JU=null;JF=null;render()">Log out</button></div></div>
  <h2>Your projects (${all.length-done} to judge, ${done} judged)</h2>`+(es.length?`<div class="scroll"><table><tr><th></th><th>Entry ID</th><th>Category</th><th>Age division</th><th>Title</th><th>Summary</th><th>Project link</th><th>Project file</th><th>Report</th><th>Your total</th></tr>${es.map(e=>{const L=links3(e);
   return `<tr${e.score?' style="background:var(--okbg)"':""}><td>${e.score?`<button class="g s" onclick="openJudge('${e.id}')">Edit Scores</button>`:`<button class="b s" onclick="openJudge('${e.id}')">Judge</button>`}</td><td>${eid(e.id)}</td><td>${esc(e.cat)}</td><td>${esc(e.age)}</td><td>${esc(e.title)}</td><td>${esc(e.summary)}</td><td>${L[0]}</td><td>${L[1]}</td><td>${L[2]}</td><td>${e.score?e.score.c1+e.score.c2+e.score.c3+" / 30":""}</td></tr>`}).join("")}</table></div><p class="mut small">Student and school names are hidden from judges. If you spot a conflict of interest with any project, contact STAWA so it can be moved.</p>`:`<p class="mut">No projects have been assigned to you yet. They will appear here once STAWA assigns judging.</p>`)}
-function judgeForm(){const e=JU.entries.find(x=>x.id===JF),f=FORMS[formKey(e)],s=e.score||{},L=links3(e),B=["1 mark","2-4 marks","5-7 marks","8-10 marks"];
- return `<div class="card"><button class="g s" onclick="JF=null;render()">Back to my projects</button><h2 style="margin-top:14px">${esc(f.t)}</h2>
- <div class="row"><label>Judge number<input value="${JU.judge.code}" disabled></label><label>Entry ID<input value="${e.id}" disabled></label><label>Category<input value="${esc(e.cat)}" disabled></label><label>Age group<input value="${esc(e.age)}" disabled></label></div>
- <p><b>${esc(e.title)}</b></p><p>${esc(f.i)}</p><div class="note small"><b>How to judge:</b> ${COMMON}</div>
- <div class="note small"><b>All entries must include the following.</b> If any are missing, mark the entry and comment on the missing item in the comments box.<ul style="margin:6px 0 0;padding-left:20px">${f.req.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
- <div class="row"><div><b class="small">Project link</b><br>${L[0]||"-"}</div><div><b class="small">Project file</b><br>${L[1]||"-"}</div><div><b class="small">Report</b><br>${L[2]||"-"}</div></div><p></p>
- ${f.c.map((c,i)=>`<div class="stu"><b>Category ${i+1}: ${esc(c[0])}</b><div class="small">${c[1].map((t,k)=>`<div><b>Level ${k+1} (${B[k]}):</b> ${esc(t)}</div>`).join("")}</div><div class="chk" style="margin:8px 0 0">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<label class="ck"><input type="radio" name="m${i}" value="${n}"${s["c"+(i+1)]===n?" checked":""} onchange="jtot()">${n}</label>`).join("")}</div></div>`).join("")}
- <p><b id="jtot"></b></p>
- <label>Further comments and feedback <span class="mut small">(missing items, and feedback to help the students improve their future projects)</span><textarea id="jcom">${esc(s.comments||"")}</textarea></label>
- <div class="err" id="jserr"></div><button class="b" onclick="saveScores()">Save scores</button></div>`}
+function judgeForm(){const e=JU.entries.find(x=>x.id===JF),f=FORMS[formKey(e)],s=e.score||{},B=["1 mark","2-4 marks","5-7 marks","8-10 marks"],
+ RO=(l,v)=>`<label>${l}<input value="${esc(v)}" readonly></label>`,
+ ROL=(l,u,n)=>`<label>${l}<div class="field">${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(n||u)}</a>`:"–"}</div></label>`;
+ return `<div class="card form"><button class="g s" onclick="JF=null;render()">Back to my projects</button><h1 class="ft" style="margin-top:14px">${esc(f.t)}</h1>
+ <div class="row2">${RO("Judge Number",JU.judge.code)}${RO("Entry ID",e.id)}${RO("Category",e.cat)}${RO("Age Group",e.age)}</div>
+ ${RO("Entry Title",e.title)}<label>Summary of the entry<textarea readonly>${esc(e.summary)}</textarea></label>
+ ${ROL("Project Link",e.link)}${ROL("Project File",e.fileUrl,e.file)}${ROL("Report",e.report,e.reportName)}
+ <div class="note"><b>How to judge:</b> ${COMMON}</div>
+ <div class="note"><b>All entries must include the following.</b> If any are missing, mark the entry and comment on the missing item in the comments box.<ul style="margin:6px 0 0;padding-left:20px">${f.req.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+ <p>${esc(f.i)}</p>
+ ${f.c.map((c,i)=>`<div class="stu"><b style="font-size:18px">Category ${i+1}: ${esc(c[0])}</b><div style="font-size:15px;margin-top:4px">${c[1].map((t,k)=>`<div><b>Level ${k+1} (${B[k]}):</b> ${esc(t)}</div>`).join("")}</div><div class="marks">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<label><input type="radio" name="m${i}" value="${n}"${s["c"+(i+1)]===n?" checked":""} onchange="jtot()"><span>${n}</span></label>`).join("")}</div></div>`).join("")}
+ <p class="q" id="jtot"></p>
+ <label>Further comments and feedback <span class="hint">(missing items, and feedback to help the students improve their future projects)</span><textarea id="jcom">${esc(s.comments||"")}</textarea></label>
+ <div class="err" id="jserr"></div><button class="b" onclick="saveScores()">Save Scores</button></div>`}
 async function saveScores(){const m=[0,1,2].map(i=>{const x=document.querySelector("input[name=m"+i+"]:checked");return x?+x.value:0});
  if(m.some(v=>!v)){g("jserr").textContent="Choose a mark from 1 to 10 for every category.";return}
  g("jserr").textContent="Saving…";
