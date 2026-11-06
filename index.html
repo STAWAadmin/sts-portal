@@ -54,38 +54,37 @@ th{background:var(--soft);white-space:nowrap}
 .chk{display:flex;flex-wrap:wrap;gap:2px 18px;margin-bottom:12px}
 .note{background:var(--soft);border-left:4px solid var(--chip);border-radius:6px;padding:10px 12px;margin:0 0 14px}
 a{color:var(--lnk)}
-/* ===== form look (matches the supplied mock-ups) ===== */
-:root{--field:#f2f6f8;--bd:#111418}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--field:#172637;--bd:#6f8aa3}}
-:root[data-theme="dark"]{--field:#172637;--bd:#6f8aa3}
-label{font-weight:700;font-size:18px;margin:0 0 20px}
-.hint{display:block;font-weight:400;color:var(--mut);font-size:15px;margin:0 0 6px}
-input,select,textarea{margin-top:6px;padding:12px 14px;font-size:17px;background:var(--field);border:1px solid var(--bd);border-radius:12px}
-textarea{min-height:104px}
+/* ===== form layout (balance of the mock-ups and the original look) ===== */
+label{font-weight:600;margin:0 0 16px}
+.hint{display:block;font-weight:400;color:var(--mut);font-size:13px;margin:0 0 4px}
+input,select,textarea{padding:10px 12px;border-radius:10px}
+textarea{min-height:96px}
+select{-webkit-appearance:none;appearance:none;padding-right:46px;background-repeat:no-repeat;background-position:right 16px center;background-size:15px 15px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 5.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23111418' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 5.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23e6eef5' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+:root[data-theme="dark"] select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 5.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23e6eef5' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 input[type=checkbox],input[type=radio]{width:18px;height:18px;margin:0 8px 0 0;accent-color:var(--pri);padding:0}
-label.ck{font-weight:400;color:var(--mut);font-size:16px;margin:0}
+label.ck{font-weight:400;font-size:15px;color:var(--ink);margin:0}
 input[type=file]{padding:6px 8px}
-input[type=file]::file-selector-button{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:6px;padding:6px 10px;margin-right:10px;font:inherit;font-size:15px}
-.note{border-left:8px solid var(--chip);border-radius:12px;font-size:14px;line-height:1.45}
-.stu{border-left:8px solid var(--chip);padding-left:14px;margin-bottom:16px;border-radius:4px}
-.card.form{background:transparent;border:0;padding:0;margin:0}
-h1.ft{font-size:34px;line-height:1.15;margin:6px 0 4px}
-.sub{color:var(--mut);margin:0 0 22px}
-.q{font-weight:700;font-size:18px;margin:6px 0 8px}
-.chk{gap:6px 20px;margin-bottom:20px}
-button.b{border-radius:12px;font-size:18px;padding:12px 24px}
-button.b.s,button.g.s{font-size:14px;padding:4px 10px;border-radius:8px}
-.eid{border-radius:10px;border:1.5px solid #111418}
+input[type=file]::file-selector-button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px;margin-right:10px;font:inherit;font-size:14px}
+.note{border-left:6px solid var(--chip);border-radius:8px}
+.stu{border-left:6px solid var(--chip);padding-left:14px;margin-bottom:16px;border-radius:4px}
+.card.form{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+h1.ft{font-size:22px;font-weight:700;line-height:1.25;margin:6px 0 6px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 18px}
+.q{font-weight:700;font-size:14px;margin:6px 0 8px}
+.chk{gap:6px 20px;margin-bottom:16px}
+.chk.cats{display:grid;grid-template-columns:repeat(3,max-content);gap:6px 28px}
+@media (max-width:640px){.chk.cats{grid-template-columns:repeat(2,max-content)}}
 .sg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end}
-.sg label{margin:0;font-size:16px}
+.sg label{margin:0}
 .marks{display:flex;flex-wrap:wrap;gap:10px 18px;margin:10px 0 4px}
-.marks label{display:flex;flex-direction:column;align-items:center;margin:0;font-size:17px;gap:4px;color:var(--ink);font-weight:700}
+.marks label{display:flex;flex-direction:column;align-items:center;margin:0;gap:4px;font-weight:700}
 .marks input{margin:0}
-.field{padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--field);min-height:48px;margin-top:6px;word-break:break-all;font-weight:400;font-size:17px}
+.field{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:44px;margin-top:4px;word-break:break-all;font-weight:400}
 button.g.del{color:var(--bad);border-color:var(--bad)}
-.row2{display:grid;gap:0 24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.row2{display:grid;gap:0 20px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .form .row{display:block}
-.card.form>label.ck{margin:0 0 20px}
+.card.form>label.ck{margin:0 0 16px}
 </style>
 </head>
 <body>
@@ -204,9 +203,9 @@ function studs(){const grp=g("type").value==="Group";
 function blocks(){const n=g("type").value==="Group"?+g("cnt").value:1;let h="";
  for(let i=0;i<n;i++)h+=`<div class="stu"><div class="sg"><label style="grid-column:span 2">${n>1?"Student "+(i+1):"Student"}<span class="hint">Full name (for certificate)</span><input id="sn${i}"></label><label>Year Level<select id="sy${i}">${opts(SEL(YEARS))}</select></label><label>Gender<select id="sg${i}">${opts(SEL(["Male","Female","Other","Prefer Not To Say"]))}</select></label><label>Aboriginal and/or Torres Strait Islander<select id="sa${i}">${opts(SEL(["Yes","No","Prefer Not To Say"]))}</select></label></div></div>`;
  g("blk").innerHTML=h}
-const ck=(c,a)=>`<div class="chk">${a.map(x=>`<label class="ck"><input type="checkbox" class="${c}" value="${x}">${x}</label>`).join("")}</div>`;
+const ck=(c,a)=>`<div class="chk${a===CATS?" cats":""}">${a.map(x=>`<label class="ck"><input type="checkbox" class="${c}" value="${x}">${x}</label>`).join("")}</div>`;
 function judgeReg(){if(!JEDIT){const st=wstate(W.js,W.je);if(st!=="open")return winCard("Judge registration",W.js,W.je,st)}return `<div class="card form"><button class="g s" onclick="${JEDIT?"cancelJudgeEdit()":"sub='';render()"}">${JEDIT?"Back":"Back to log in"}</button><h1 class="ft" style="margin-top:14px">${JEDIT?"Edit Judge":"Judge Registration"}</h1>${JEDIT?`<p class="sub">Judge number ${JEDIT.code}</p>`:`<p class="sub">You will get a 3-digit judge number to log in with.</p>`}
-<div class="row2">${F("First Name","jf")}${F("Surname","jl")}${F("Email","je","email")}${F("Phone Number","jp","tel")}</div>${F("School/Institute/Company","jo")}
+<div class="row2">${F("First Name","jf")}${F("Surname","jl")}</div><div class="row2">${F("Email","je","email")}${F("Phone Number","jp","tel")}</div>${F("School/Institute/Company","jo")}
 <label>Have you judged the Science Talent Search competition in the last five (5) years?<select id="jy">${opts(SEL(["Yes","No"]))}</select></label>
 <div class="q">Entry categories you would prefer to judge (select any)</div>${ck("jc",CATS)}
 <div class="q">Age divisions you would prefer to judge (select any)</div>${ck("ja",AGES)}
@@ -428,7 +427,7 @@ function judgeForm(){const e=JU.entries.find(x=>x.id===JF),f=FORMS[formKey(e)],s
  RO=(l,v)=>`<label>${l}<input value="${esc(v)}" readonly></label>`,
  ROL=(l,u,n)=>`<label>${l}<div class="field">${u?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(n||u)}</a>`:"–"}</div></label>`;
  return `<div class="card form"><button class="g s" onclick="JF=null;render()">Back to my projects</button><h1 class="ft" style="margin-top:14px">${esc(f.t)}</h1>
- <div class="row2">${RO("Judge Number",JU.judge.code)}${RO("Entry ID",e.id)}${RO("Category",e.cat)}${RO("Age Group",e.age)}</div>
+ <div class="row2">${RO("Judge Number",JU.judge.code)}${RO("Entry ID",e.id)}</div><div class="row2">${RO("Category",e.cat)}${RO("Age Group",e.age)}</div>
  ${RO("Entry Title",e.title)}<label>Summary of the entry<textarea readonly>${esc(e.summary)}</textarea></label>
  ${ROL("Project Link",e.link)}${ROL("Project File",e.fileUrl,e.file)}${ROL("Report",e.report,e.reportName)}
  <div class="note"><b>How to judge:</b> ${COMMON}</div>
