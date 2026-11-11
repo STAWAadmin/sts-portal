@@ -102,13 +102,26 @@ let S={schools:[],entries:[],judges:[],assign:[],scores:[]},view="home",ses=null
 /* ===== SETUP: paste your two Supabase values here (see README.md, step 4) ===== */
 const SUPABASE_URL="https://syobbwhykrwtiyhqvuzk.supabase.co",SUPABASE_KEY="sb_publishable_Z2AudFNCnPzNv5I3ALk5LA_EOZ1gZ4N";
 /* ================================================================================ */
+const DRIVE_URL="https://script.google.com/macros/s/AKfycbxCYy_uos-zhNBHnl56VVu8Q7949LhBS6-Ze57eINqjwKZ5i1PWDPgOWX7306ksSdoA/exec";
+const DRIVE_ON=!DRIVE_URL.startsWith("PASTE"),MAXMB=DRIVE_ON?200:50;
 const CONFIGURED=!SUPABASE_URL.startsWith("PASTE");
 const sb=CONFIGURED?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 let CRED=null,JV=null,EDIT=null,JU=null,JC=null,jses=false,CUT=null,NC={},JF=null,W={};
 const rpc=async(fn,args)=>{const {data,error}=await sb.rpc(fn,args||{});if(error)throw error;return data};
-async function upload(f){const path="u/"+crypto.randomUUID()+"/"+f.name.replace(/[^\w.\-]+/g,"_");
+async function supabaseUpload(f){const path="u/"+crypto.randomUUID()+"/"+f.name.replace(/[^\w.\-]+/g,"_");
  const {error}=await sb.storage.from("entries").upload(path,f,{contentType:f.type||undefined});if(error)throw error;
  return sb.storage.from("entries").getPublicUrl(path).data.publicUrl}
+async function upload(f){if(!DRIVE_ON)return supabaseUpload(f);
+ let auth;if(adm&&view==="admin"){const {data}=await sb.auth.getSession();auth={role:"admin",token:data.session.access_token,prefix:"admin"}}else auth={role:"school",code:CRED.c,email:CRED.em,prefix:CRED.c};
+ const res=await fetch(DRIVE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"init",...auth,name:f.name,size:f.size,type:f.type||"application/octet-stream"})});
+ const j=await res.json();if(j.error||!j.session)throw new Error(j.error||"Couldn’t start the upload.");
+ const meta=await putFile(j.session,f);return "https://drive.google.com/file/d/"+meta.id+"/view"}
+function putFile(url,f){return new Promise((ok,no)=>{const x=new XMLHttpRequest();x.open("PUT",url);x.setRequestHeader("Content-Type",f.type||"application/octet-stream");
+ x.upload.onprogress=e=>{const el=g("eerr");if(el&&e.lengthComputable)el.textContent="Uploading "+f.name+": "+Math.round(e.loaded/e.total*100)+"%"};
+ x.onload=()=>{if(x.status>=200&&x.status<300){try{ok(JSON.parse(x.responseText))}catch(e){no(new Error("The upload finished but Google Drive sent an unexpected reply."))}}else no(new Error("Google Drive upload failed ("+x.status+")."))};
+ x.onerror=()=>no(new Error("The upload failed. Check your connection and try again."));x.send(f)})}
+async function driveTrash(list){if(!DRIVE_ON)return;const ids=[];list.forEach(e=>[e.fileUrl,e.report].forEach(u=>{const m=/drive\.google\.com\/file\/d\/([\w-]+)/.exec(u||"");if(m)ids.push(m[1])}));if(!ids.length)return;
+ try{const {data}=await sb.auth.getSession();await fetch(DRIVE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"trash",token:data.session.access_token,ids})})}catch(e){}}
 async function loadAdmin(){const [a,b,c,d,f]=await Promise.all([sb.from("schools").select("*").order("created_at"),sb.from("entries").select("*").order("id"),sb.from("judges").select("*").order("created_at"),sb.from("assignments").select("*"),sb.from("scores").select("*")]);
  S.schools=a.data||[];S.entries=b.data||[];S.judges=c.data||[];S.assign=d.data||[];S.scores=f.data||[];NC={};await loadCut()}
 async function adminLogin(){const {error}=await sb.auth.signInWithPassword({email:g("ae").value.trim(),password:g("ap").value});
@@ -269,7 +282,7 @@ async function saveEntry(){const v=id=>g(id).value.trim(),type=v("type"),n=type=
  const link=v("link"),pf=g("pf").files[0],rf=g("rf").files[0];
  if(!link&&!pf&&!old.fileUrl)er.push("Add a project link or upload the project file.");
  if(link&&!/^https?:\/\/\S+$/.test(link))er.push("The project link must start with https:// and contain no spaces.");
- if([pf,rf].some(f=>f&&f.size>52428800))er.push("Files must be under 50 MB. For large videos, upload to YouTube or Vimeo and paste the link instead.");
+ if([pf,rf].some(f=>f&&f.size>MAXMB*1048576))er.push("Files must be under "+MAXMB+" MB. For large videos, upload to YouTube or Vimeo and paste the link instead.");
  if(!g("safe").checked)er.push("Tick the safety declaration to submit an entry.");
  if(!EDIT&&nextNum(cur())>99)er.push("This school has reached 99 entries.");
  if(er.length){g("eerr").textContent=er.join(" ");return}
@@ -409,7 +422,7 @@ const COMMON="Judges decide the level of the entry, then whether it is high, med
  CIN=[["Originality and Creativity",ORIGP],["Methodology",METI],["Communication",COMP]];
 const FORMS={
  poster:{t:"Science Communication – Poster",i:"A decorative science poster is an attractive and visual way to give a message to the public about an issue that is related to Science. It is a way of giving this message clearly, quickly and relies on ‘impact’.",req:["An A2 or A3 sized poster."],c:[["Originality and Creativity",ORIG],["Communication",COMD],["Presentation",PRES]]},
- video:{t:"Science Communication – Video",i:"Science videos or animations that creatively present a science idea between 1-3 minutes.",req:[RISK,"A 1-3 minute video presenting a science idea, not a science skill. Entries in this category should be judged on the clarity of the ideas presented, not the duration of the video for 2026. For example, a 1 minute video may be more effective at communicating the idea than a longer video.","Opening and closing credits, with a title for the video in the opening credits."],c:[["Originality and Creativity",ORIG],["Scientific Understanding",SCIU],["Presentation",PRES]]},
+ video:{t:"Science Communication – Video",i:"Science videos or animations that creatively present a science idea between 1-3 minutes.",req:[RISK,"A 1-3 minute video presenting a science idea, not a science skill. Entries in this category should be judged on the clarity of the ideas presented, not the duration of the video. For example, a 1 minute video may be more effective at communicating the idea than a longer video.","Opening and closing credits, with a title for the video in the opening credits."],c:[["Originality and Creativity",ORIG],["Scientific Understanding",SCIU],["Presentation",PRES]]},
  photo:{t:"Science Communication – Photography",i:"Scientific photography records a scientific event or illustrates a scientific phenomenon, linked by a common theme.",req:[RISK,"3-6 photographs with a statement explaining how each photograph links to the theme.","A written report."],c:[["Originality and Creativity",ORIG],["Communication",COMD],["Presentation",PRES]]},
  inv712:{t:"Science Investigation (Years 7-12)",i:INVA,req:[RISK,CONSENT,SUPV,"A 2-3 minute video submitted to accompany the report, demonstrating scientific understanding, ownership and a written report."],c:CIN},
  invK2:{t:"Science Investigation (Years K-2)",i:INVP,req:[RISK,CONSENT,SUPV,"An A2 or A3 poster."],c:CIN},
@@ -476,10 +489,10 @@ const delBtn=(fn,id)=>`<button class="g s" style="color:var(--bad);border-color:
 async function afterDel(error,y){if(error){alert("Couldn’t delete: "+error.message);return}await loadAdmin();render();scrollTo(0,y)}
 async function delEntry(id){const e=S.entries.find(x=>x.id===id),sc=S.scores.filter(x=>x.entry_id===id).length;
  if(!confirm("Delete entry "+id+" ("+e.title+")?\n\nIts judge assignments"+(sc?" and "+sc+" score"+(sc===1?"":"s"):"")+" are removed too. This can’t be undone."))return;
- const y=scrollY,r=await sb.from("entries").delete().eq("id",id);afterDel(r.error,y)}
+ const y=scrollY,r=await sb.from("entries").delete().eq("id",id);if(!r.error)driveTrash([e]);afterDel(r.error,y)}
 async function delSchool(code){const s=S.schools.find(x=>x.code===code),es=S.entries.filter(e=>e.school===code);
  if(!confirm("Delete "+s.name+" (school code "+code+")"+(es.length?" and its "+es.length+" entr"+(es.length===1?"y":"ies"):"")+"?\n\nAny judge assignments and scores for those entries are removed too. This can’t be undone."))return;
- const y=scrollY;if(es.length){const r=await sb.from("entries").delete().eq("school",code);if(r.error)return afterDel(r.error,y)}
+ const y=scrollY;if(es.length){const r=await sb.from("entries").delete().eq("school",code);if(r.error)return afterDel(r.error,y);driveTrash(es)}
  const r2=await sb.from("schools").delete().eq("code",code);afterDel(r2.error,y)}
 async function delJudge(code){const j=S.judges.find(x=>x.code===code),n=S.assign.filter(a=>a.judge_code===code).length;
  if(!confirm("Delete judge "+j.name+" (number "+code+")?"+(n?"\n\nTheir "+n+" assigned project"+(n===1?"":"s")+" become unassigned and their scores are deleted.":"")+"\n\nThis can’t be undone."))return;
