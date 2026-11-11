@@ -1,51 +1,56 @@
-# STS Entry Portal: setup guide
+# STS Entry Portal
 
-About 20 minutes, no coding, and **free**: Supabase (free plan) stores the data and files, and any free static host serves the page. There is nothing to install.
+A free website where schools register and enter students, judges register and score projects, and STAWA staff run everything from an admin area.
 
-You will end up with one website where schools register and enter students, judges register, and STAWA staff log in to the admin area, see the master list and category sheets, copy private judge links and download everything as Excel.
+**How it is put together**
+| Part | What it does | Where it lives |
+|---|---|---|
+| Website (`index.html`) | Every screen: schools, judges, admin | GitHub Pages (holds no data) |
+| Database and logins | Schools, entries, judges, assignments, scores, dates | Supabase (free plan) |
+| Uploaded files | Projects and reports | Google Drive (stawaadmin@gmail.com) |
+| Automatic emails | School, judge and entry emails from admin@stawa.net | Google Apps Script, sending through Microsoft 365 |
 
-## Step 1. Create the free Supabase project
-1. Go to https://supabase.com and sign up (free, no card needed).
-2. Click **New project**. Name it `sts`, choose a database password (save it somewhere, you won't need it day to day), and pick the region closest to Perth (Singapore or Sydney).
-3. Wait about two minutes while it sets up.
+**Files in this folder**
+- `index.html`: the website.
+- `schema.sql`, then `update-2-judging.sql` to `update-7-email.sql`: database setup, to be run in that order.
+- `apps-script/Code.gs` and `apps-script/appsscript.json`: the Google script for Drive uploads and emails.
+- `GOOGLE-SETUP.md`: step-by-step guide for Drive, Microsoft and the emails.
 
-## Step 2. Create the database
-1. In the left menu click **SQL Editor** and **New query**.
-2. Open `schema.sql` from this folder, copy everything, paste it in, and click **Run**. Then do the same with `update-2-judging.sql` then `update-3-cutoff.sql`, then `update-4-lock-edits.sql` (new query, paste, **Run** each).
-3. You should see "Success". This creates the tables, security rules, the file storage bucket and the functions the website uses.
+## Setting up from scratch
+**1. Supabase project.** Sign up at https://supabase.com, click **New project**, name it `sts`, save the database password, and choose the region closest to Perth (Sydney or Singapore).
 
-## Step 3. Create the admin login
-1. Left menu: **Authentication**, then **Users**, then **Add user**, then **Create new user**.
-2. Email: `admin@stawa.net`. Password: the staff password you chose. Tick **Auto Confirm User**, then create.
-3. Still in Authentication, open the sign-in settings (Sign In / Providers) and turn **off** "Allow new users to sign up". Nobody else can then create accounts.
-4. `schema.sql` already registered admin@stawa.net as an admin. To add another staff member, create their user the same way, then run `insert into admins (email) values ('their@email');` in the SQL Editor.
+**2. Database.** In **SQL Editor**, run each file in this order (new query, paste, **Run**): `schema.sql`, `update-2-judging.sql`, `update-3-cutoff.sql`, `update-4-lock-edits.sql`, `update-5-scoring.sql`, `update-6-dates.sql`, `update-7-email.sql`. Each is safe to run twice.
 
-## Step 4. Connect the website to Supabase
-1. In Supabase, open **Project Settings**, then **API** (or **Data API**).
-2. Copy the **Project URL** and the **anon public** key. Never use the `service_role` key.
-3. Open `index.html` in any text editor, find the two lines near the top of the script that say `PASTE_YOUR_...`, paste the values between the quotes, and save.
+**3. Admin login.** In **Authentication**, **Users**, **Add user**: email `admin@stawa.net`, a password of your choice, and tick **Auto Confirm User**. Then, in the sign-in settings, turn **off** "Allow new users to sign up". `schema.sql` already lists admin@stawa.net as an admin. To add another staff member, create their user the same way and run `insert into admins (email) values ('their@email');`.
 
-## Step 5. Put it online (free)
-Pick one. All three are free and you only upload `index.html`:
-- **Cloudflare Pages**: Workers & Pages, Create, Pages, **Upload assets**, drag in the folder.
-- **Netlify Drop**: https://app.netlify.com/drop, drag the folder in.
-- **GitHub Pages**: upload `index.html` to a repository and turn on Pages.
+**4. Connect the website.** In `index.html`, near the top of the script, set:
+- `SUPABASE_URL` and `SUPABASE_KEY`: from **Project Settings**, **API Keys**. Use the project URL (without `/rest/v1/`) and the **publishable** key. Never use the secret or service_role key.
+- `DRIVE_URL`: the Apps Script web app address from `GOOGLE-SETUP.md`. If you leave it unset, uploads fall back to Supabase storage (1 GB, 50 MB per file).
 
-You get a web address straight away. Share that with schools and judges, and optionally point a STAWA address at it later.
+**5. Google Drive and emails.** Follow `GOOGLE-SETUP.md`.
 
-## Step 6. Test it
-1. Register a test school, note the 4-digit code, log in with the code and email, and submit a test entry with a YouTube link and one with a small file.
-2. Go to **Admin**, log in, and check the entry appears. Try **Copy link**, open it in a private window to see the judge view, then **Download Excel**.
-3. Delete test rows in Supabase under **Table Editor** before the competition opens.
+**6. Put the website online.** Create a public GitHub repository, upload `index.html` (the other files are optional), then **Settings**, **Pages**, deploy from branch `main` and folder `/ (root)`. Your address will be `https://YOURNAME.github.io/REPOSITORY/`. Put that address in `SITE` in `Code.gs`.
 
-## Good to know (free plan)
-- **Limits:** 500 MB database, 1 GB file storage, 50 MB per file, 5 GB of downloads a month. Text entries are tiny, so storage is the one to watch. Ask schools to put videos on YouTube or Vimeo and paste the link. Check current limits at https://supabase.com/pricing.
-- **Pausing:** free projects pause after a week with no activity. Out of season, click **Restore** in the Supabase dashboard before you open entries.
-- **Backups:** the free plan has no automatic backups, so click **Download Excel** in Admin regularly. It includes every school, judge, entry and all 30 category sheets in your existing layout.
-- **Privacy of files:** uploaded files sit at long random web addresses that are not listed anywhere. Only judges you give a link to can open them, but anyone who is given a link could pass it on.
-- **No automatic emails yet:** the school code is shown on screen after registering and is visible in Admin, so you can resend it. Sending emails automatically is a possible next step.
-- **Logo and colours** are inside `index.html` if you ever want to change them.
+**7. Test everything** (see `GOOGLE-SETUP.md`, Part 5), then delete the test rows in Admin, using each row's **Delete** button, before opening for real.
 
-## Updating an existing install (judging update)
-1. In Supabase, open **SQL Editor**, paste all of `update-2-judging.sql` and click **Run**, then do the same with `update-3-cutoff.sql`, `update-4-lock-edits.sql`, `update-5-scoring.sql` and `update-6-dates.sql`. All are safe to run twice, and you only need the ones you haven't run yet.
-2. In GitHub, upload the new `index.html` to your repository (**Add file**, **Upload files**, **Commit changes**). Wait a few minutes, then reload the site.
+## Running the competition
+1. **Admin, Opening and closing dates:** set when school registration, submissions and judge registration open and close (Perth time). Blank means no limit.
+2. **School registration and entries:** schools register for a 4-digit code and log in with the code and their email. Judges register for a 3-digit number.
+3. **After submissions close:** schools can no longer add or edit entries. Admin still can (**Edit** and **Delete** on the master list).
+4. **Judge assignments tab, Assign projects:** each project goes to two judges, avoiding conflicts and balancing workloads. Projects flagged ⚠ move to the top of the master list for you to check. Change a judge by typing another judge number next to the project.
+5. **Judging:** judges log in with their number and email, click **Judge**, and enter marks. The judge's number turns green on the master list once they have judged.
+6. **Download judging results Excel:** all scores, the two judges' totals and the average. Orange rows have totals more than 6 apart, and yellow marks the top 5 averages in each category and age division.
+7. **Download Excel** (master list): every school, judge, entry and category sheet.
+
+## Good to know
+- **Supabase free plan:** 500 MB database, and projects pause after a week of no activity. Click **Restore** in the dashboard before opening each year. There are no automatic backups, so download the Excel files regularly.
+- **Google Drive:** files use the Google account's storage (15 GB on a free Gmail account). Deleting an entry or school in Admin moves its Drive files to the Drive bin.
+- **Privacy of files:** uploaded files are only reachable through their long link. Judges only see the projects assigned to them, with no student or school names, but anyone given a link could pass it on.
+- **Emails:** the Microsoft secret expires (6 to 24 months). Set a reminder to create a new one, or emails will stop.
+- **A new year:** delete last year's schools, entries, judges, assignments and scores (or use the Delete buttons), then reset the dates in Admin. The `admins` and `settings` tables stay as they are.
+- **Logo and colours** are inside `index.html`.
+
+## Updating an existing install
+1. Run any `update-N` SQL files you haven't run yet, in order.
+2. Upload the new `index.html` to GitHub (**Add file**, **Upload files**, **Commit changes**) and wait a few minutes.
+3. If `Code.gs` changed, paste it into the Apps Script and deploy a **New version** (**Deploy**, **Manage deployments**, pencil icon).
