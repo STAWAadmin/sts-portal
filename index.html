@@ -111,15 +111,22 @@ const rpc=async(fn,args)=>{const {data,error}=await sb.rpc(fn,args||{});if(error
 async function supabaseUpload(f){const path="u/"+crypto.randomUUID()+"/"+f.name.replace(/[^\w.\-]+/g,"_");
  const {error}=await sb.storage.from("entries").upload(path,f,{contentType:f.type||undefined});if(error)throw error;
  return sb.storage.from("entries").getPublicUrl(path).data.publicUrl}
+const CHUNK=4*1024*1024;
+async function drivePost(o){let r;try{r=await fetch(DRIVE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)})}catch(e){throw new Error("Couldn’t reach the upload service. Check your connection and try again.")}
+ try{return await r.json()}catch(e){throw new Error("The upload service isn’t set up correctly (it needs to be deployed with access for Anyone and authorised).")}}
+const b64=blob=>new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result).split(",")[1]);fr.onerror=()=>no(new Error("Couldn’t read the file."));fr.readAsDataURL(blob)});
 async function upload(f){if(!DRIVE_ON)return supabaseUpload(f);
  let auth;if(adm&&view==="admin"){const {data}=await sb.auth.getSession();auth={role:"admin",token:data.session.access_token,prefix:"admin"}}else auth={role:"school",code:CRED.c,email:CRED.em,prefix:CRED.c};
- const res=await fetch(DRIVE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"init",...auth,name:f.name,size:f.size,type:f.type||"application/octet-stream"})});
- const j=await res.json();if(j.error||!j.session)throw new Error(j.error||"Couldn’t start the upload.");
- const meta=await putFile(j.session,f);return "https://drive.google.com/file/d/"+meta.id+"/view"}
-function putFile(url,f){return new Promise((ok,no)=>{const x=new XMLHttpRequest();x.open("PUT",url);x.setRequestHeader("Content-Type",f.type||"application/octet-stream");
- x.upload.onprogress=e=>{const el=g("eerr");if(el&&e.lengthComputable)el.textContent="Uploading "+f.name+": "+Math.round(e.loaded/e.total*100)+"%"};
- x.onload=()=>{if(x.status>=200&&x.status<300){try{ok(JSON.parse(x.responseText))}catch(e){no(new Error("The upload finished but Google Drive sent an unexpected reply."))}}else no(new Error("Google Drive upload failed ("+x.status+")."))};
- x.onerror=()=>no(new Error("The upload failed. Check your connection and try again."));x.send(f)})}
+ const j=await drivePost({action:"init",...auth,name:f.name,size:f.size,type:f.type||"application/octet-stream"});
+ if(j.error||!j.session)throw new Error(j.error||"Couldn’t start the upload.");
+ let id=null;
+ for(let start=0;start<f.size;start+=CHUNK){const data=await b64(f.slice(start,Math.min(start+CHUNK,f.size)));let res={error:"Upload failed."};
+  for(let t=0;t<3;t++){try{res=await drivePost({action:"chunk",session:j.session,start,total:f.size,data})}catch(e){res={error:e.message}}if(!res.error)break}
+  if(res.error)throw new Error(res.error);
+  const el=g("eerr");if(el)el.textContent="Uploading "+f.name+": "+Math.min(100,Math.round((start+CHUNK)/f.size*100))+"%";
+  if(res.id)id=res.id}
+ if(!id)throw new Error("Google Drive didn’t confirm the upload. Please try again.");
+ return "https://drive.google.com/file/d/"+id+"/view"}
 async function driveTrash(list){if(!DRIVE_ON)return;const ids=[];list.forEach(e=>[e.fileUrl,e.report].forEach(u=>{const m=/drive\.google\.com\/file\/d\/([\w-]+)/.exec(u||"");if(m)ids.push(m[1])}));if(!ids.length)return;
  try{const {data}=await sb.auth.getSession();await fetch(DRIVE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"trash",token:data.session.access_token,ids})})}catch(e){}}
 async function loadAdmin(){const [a,b,c,d,f]=await Promise.all([sb.from("schools").select("*").order("created_at"),sb.from("entries").select("*").order("id"),sb.from("judges").select("*").order("created_at"),sb.from("assignments").select("*"),sb.from("scores").select("*")]);
